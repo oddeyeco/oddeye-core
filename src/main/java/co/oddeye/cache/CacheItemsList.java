@@ -60,6 +60,10 @@ public class CacheItemsList implements Cache<String, CacheItem> {
         }
         return 0;
     }
+    
+    public Map<String, Long> sizeAllkey() {
+        return Keyscounter;
+    }    
 
     @Override
     public CacheItem getIfPresent(Object key) {
@@ -294,8 +298,9 @@ public class CacheItemsList implements Cache<String, CacheItem> {
 
                     Item.update(family, R_value);
                     this.addObject(Item);
-                    dataadded = true;
+                    dataadded = true;                    
                     client.put(putrule);
+                    
                 }
 
             }
