@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import java.util.Arrays;
 import java.util.Map;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.uid.NoSuchUniqueName;
@@ -16,23 +17,59 @@ import net.opentsdb.uid.UniqueId;
  */
 public class OddeyeTag {
 
-    private final String key;
-    private final String value;
+    private String key;
+    private String value;
     private byte[] keyTSDBUID;
-    private final byte[] valueTSDBUID;
+    private byte[] valueTSDBUID;
 
     public OddeyeTag(Map.Entry<String, Object> entry, TSDB tsdb) {
         key = entry.getKey();
         value = String.valueOf(entry.getValue());
 
+        if (key.toLowerCase().equals("alert_level")) {
+            value = Integer.toString(Math.round(Float.valueOf(value)));
+        }
         try {
             keyTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGK, key);
         } catch (NoSuchUniqueName e) {
-            keyTSDBUID = tsdb.assignUid(key, value);
-//            keyTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGK, key);
+            keyTSDBUID = tsdb.assignUid("tagk", key);
         }
 
-        valueTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGV, value);
+        try {
+            valueTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGV, value);
+        } catch (NoSuchUniqueName e) {
+            valueTSDBUID = tsdb.assignUid("tagv", value);
+        }
+
+    }
+
+    public OddeyeTag(String p_key, String p_value, TSDB tsdb) throws Exception {
+        key = p_key;
+        value = p_value;
+        
+        
+        if (key == null) {
+            throw new Exception("Key is Null");
+        }
+        if (value == null) {
+            throw new Exception("value is Null");
+        }
+
+        if (key.toLowerCase().equals("alert_level")) {
+            value = Integer.toString(Math.round(Float.valueOf(value)));
+        }
+        try {
+            keyTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGK, key);
+        } catch (NoSuchUniqueName e) {
+            keyTSDBUID = tsdb.assignUid("tagk", key);
+        }
+
+        try {
+            valueTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.TAGV, value);
+        } catch (NoSuchUniqueName e) {
+            valueTSDBUID = tsdb.assignUid("tagv", value);
+        }
+
     }
 
     /**
@@ -61,5 +98,27 @@ public class OddeyeTag {
      */
     public byte[] getValueTSDBUID() {
         return valueTSDBUID;
+    }
+
+    @Override
+    public boolean equals(Object anObject) {
+        if (this == anObject) {
+            return true;
+        }
+        if (anObject instanceof OddeyeTag) {
+            final OddeyeTag o = (OddeyeTag) anObject;
+            if (Arrays.equals(o.getKeyTSDBUID(), keyTSDBUID) && (Arrays.equals(o.getValueTSDBUID(), valueTSDBUID))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Arrays.hashCode(this.keyTSDBUID);
+        hash = 53 * hash + Arrays.hashCode(this.valueTSDBUID);
+        return hash;
     }
 }
