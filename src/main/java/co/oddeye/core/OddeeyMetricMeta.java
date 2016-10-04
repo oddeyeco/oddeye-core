@@ -11,10 +11,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  *
@@ -54,6 +54,18 @@ public class OddeeyMetricMeta {
         });
     }
 
+    public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
+       nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
+       int i = 3;
+        while (i < key.length) {
+           byte[] tgkey = Arrays.copyOfRange(key, i, i+3);     
+           byte[] tgval = Arrays.copyOfRange(key, i+3, i+6);     
+           OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
+            tags.put(tag.getKey(), tag);
+            i=i+6;
+        }
+        name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+    }
     /**
      * @return the name
      */
@@ -66,6 +78,20 @@ public class OddeeyMetricMeta {
      */
     public byte[] getNameTSDBUID() {
         return nameTSDBUID;
+    }
+
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        byte[] key;
+        key = nameTSDBUID;
+
+        for (OddeyeTag tag : tags.values()) {
+            key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
+            key = ArrayUtils.addAll(key, tag.getValueTSDBUID());
+        }
+        return key;
     }
 
     /**

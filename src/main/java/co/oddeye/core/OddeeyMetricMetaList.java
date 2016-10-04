@@ -7,16 +7,49 @@ package co.oddeye.core;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.opentsdb.core.TSDB;
+import org.hbase.async.HBaseClient;
+import org.hbase.async.KeyValue;
+import org.hbase.async.Scanner;
 
 /**
  *
  * @author vahan
  */
-public class OddeeyMetricMetaList extends ArrayList<OddeeyMetricMeta> {
+public final class OddeeyMetricMetaList extends ArrayList<OddeeyMetricMeta> {
 
     private final ArrayList<String> Tagkeys = new ArrayList();
     private final ArrayList<String> Tagkeyv = new ArrayList();
+
+    public OddeeyMetricMetaList() {
+        super();
+    }
+
+    public OddeeyMetricMetaList(TSDB tsdb,byte[] table) throws Exception {
+        super();
+        try {
+            final HBaseClient client = tsdb.getClient();
+            Scanner scanner = client.newScanner(table);
+            scanner.setServerBlockCache(false);
+            ArrayList<ArrayList<KeyValue>> rows;
+            while ((rows = scanner.nextRows(1).joinUninterruptibly()) != null) {
+                for (final ArrayList<KeyValue> row : rows) {
+                    for (final KeyValue kv : row) {
+                        this.add(new OddeeyMetricMeta(kv.key(),tsdb));
+                    }
+                }
+            }
+//        GetRequest request = new GetRequest("oddeyerules", key);
+
+//        client.get(request);
+        } catch (Exception ex) {
+            throw ex;
+
+        }
+    }
 
     public OddeeyMetricMetaList getbyTagK_or(String[] tagkeys) {
         final OddeeyMetricMetaList result = new OddeeyMetricMetaList();

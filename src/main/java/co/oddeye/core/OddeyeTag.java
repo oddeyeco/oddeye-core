@@ -72,6 +72,13 @@ public class OddeyeTag {
 
     }
 
+    OddeyeTag(byte[] tgkey, byte[] tgval, TSDB tsdb) throws Exception {
+        keyTSDBUID = tgkey;
+        valueTSDBUID = tgval;
+        key = tsdb.getUidName(UniqueId.UniqueIdType.TAGK, keyTSDBUID).join();
+        value = tsdb.getUidName(UniqueId.UniqueIdType.TAGV, valueTSDBUID).join();
+    }
+
     /**
      * @return the key
      */
