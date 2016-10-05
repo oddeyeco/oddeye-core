@@ -77,7 +77,7 @@ public class OddeeyMetricMeta {
         });
     }
 
-    public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb) throws Exception {
+    public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
         final byte[] key = row.get(0).key();
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
         int i = 3;
@@ -88,33 +88,29 @@ public class OddeeyMetricMeta {
             tags.put(tag.getKey(), tag);
             i = i + 6;
         }
-        name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();        
-        for (final KeyValue kv : row) {
+        name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+        if (loadAllRules) {
+            for (final KeyValue kv : row) {
+                if (kv.qualifier().length != 6) {
+                    continue;
+                }
+                MetriccheckRule RuleItem = RulesCache.getIfPresent(Hex.encodeHexString(kv.qualifier()));
+                if (RuleItem == null) {
+                    RuleItem = new MetriccheckRule(kv.qualifier());
+                }
+                // Herdakanucjun@ karevora
+                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
+                RuleItem.update("avg", ByteBuffer.wrap(b_value).getDouble());
+                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
+                RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
+                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
+                RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
+                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
+                RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
+                RulesCache.put(Hex.encodeHexString(kv.qualifier()), RuleItem);
 
-            if (kv.qualifier().length != 6)
-            {
-                continue;
             }
-            MetriccheckRule RuleItem = RulesCache.getIfPresent(Hex.encodeHexString(kv.qualifier()));
-            if (RuleItem == null) {
-                RuleItem = new MetriccheckRule(kv.qualifier());
-            }
-            // Herdakanucjun@ karevora
-            byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
-            RuleItem.update("avg", ByteBuffer.wrap(b_value).getDouble());
-            b_value = Arrays.copyOfRange(kv.value(), 8, 16);
-            RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
-            b_value = Arrays.copyOfRange(kv.value(), 16, 24);
-            RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
-            b_value = Arrays.copyOfRange(kv.value(), 24, 32);
-            RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
-
-            
-//                    System.out.println("Metric: " + name + "host: " + querytags.get("host") + ":" + family + ":" + R_value + " time:" + CalendarObj.getTime());
-            RulesCache.put(Hex.encodeHexString(kv.qualifier()), RuleItem);
-
         }
-//        row.
     }
 
     public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
@@ -171,6 +167,7 @@ public class OddeeyMetricMeta {
             for (final DataPoints datapoints : series) {
                 try {
                     Tagmap = datapoints.getTags();
+                    Tagmap.remove("alert_level");
                     if (!Tagmap.equals(querytags)) {
                         throw new Exception("Invalid tags");
                     }

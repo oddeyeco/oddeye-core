@@ -35,7 +35,7 @@ public final class OddeeyMetricMetaList extends ArrayList<OddeeyMetricMeta> {
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    this.add(new OddeeyMetricMeta(row,tsdb));
+                    this.add(new OddeeyMetricMeta(row,tsdb,false));
                 }
             }
 //        GetRequest request = new GetRequest("oddeyerules", key);
