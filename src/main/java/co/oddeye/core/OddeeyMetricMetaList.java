@@ -7,8 +7,6 @@ package co.oddeye.core;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.opentsdb.core.TSDB;
 import org.hbase.async.HBaseClient;
@@ -35,11 +33,9 @@ public final class OddeeyMetricMetaList extends ArrayList<OddeeyMetricMeta> {
             Scanner scanner = client.newScanner(table);
             scanner.setServerBlockCache(false);
             ArrayList<ArrayList<KeyValue>> rows;
-            while ((rows = scanner.nextRows(1).joinUninterruptibly()) != null) {
+            while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    for (final KeyValue kv : row) {
-                        this.add(new OddeeyMetricMeta(kv.key(),tsdb));
-                    }
+                    this.add(new OddeeyMetricMeta(row,tsdb));
                 }
             }
 //        GetRequest request = new GetRequest("oddeyerules", key);
