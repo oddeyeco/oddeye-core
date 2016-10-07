@@ -57,7 +57,7 @@ public class OddeeyMetricMeta {
     private final Map<String, OddeyeTag> tags = new HashMap<>();
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
-    private final static String[] Aggregator = {"none", "none", "max", "min"};
+    private final static String[] Aggregator = {"max", "avg", "max", "min"};
     private final static String[] RulesDownsamples = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
     private Map<String, String> Tagmap;
