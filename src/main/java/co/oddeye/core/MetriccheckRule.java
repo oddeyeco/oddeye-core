@@ -24,9 +24,11 @@ public class MetriccheckRule {
     private final byte[] id;
     private final byte[] key;
     private final byte[] qualifier;
+    private boolean isValidRule;
 
     
     public MetriccheckRule(byte[] p_key,byte[] p_qualifier) {
+        this.isValidRule = false;
 
         key = p_key; //ByteBuffer.allocate(12).putInt(CalendarObj.get(Calendar.YEAR)).putInt(CalendarObj.get(Calendar.DAY_OF_YEAR)).putInt(houre).array();
         qualifier = p_qualifier; //qualifier = ArrayUtils.addAll(datapoints.metricUID(), tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("UUID"))); //qualifier = ArrayUtils.addAll(qualifier, tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("host")));   
@@ -35,6 +37,7 @@ public class MetriccheckRule {
     }    
     
     public MetriccheckRule(byte[] p_key) {
+        this.isValidRule = false;
 
         key = p_key; //ByteBuffer.allocate(12).putInt(CalendarObj.get(Calendar.YEAR)).putInt(CalendarObj.get(Calendar.DAY_OF_YEAR)).putInt(houre).array();        
         qualifier = null;
@@ -42,6 +45,7 @@ public class MetriccheckRule {
     }        
     
     public MetriccheckRule(KeyValue data) {
+        this.isValidRule = false;
 
         if (Arrays.equals("min".getBytes(), data.family())) {
             min = ByteBuffer.wrap(data.value()).getDouble();
@@ -97,6 +101,7 @@ public class MetriccheckRule {
             dev = value;
         }
 
+        isValidRule = true;
         
     return this;
     }
@@ -202,6 +207,13 @@ public class MetriccheckRule {
      */
     public byte[] getQualifier() {
         return qualifier;
+    }
+
+    /**
+     * @return the isValidRule
+     */
+    public boolean isIsValidRule() {
+        return isValidRule;
     }
 
 }

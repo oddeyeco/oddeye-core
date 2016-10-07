@@ -55,9 +55,9 @@ public class OddeeyMetricMeta {
     private String name;
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new HashMap<>();
-    private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
+    private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
-    private final static String Aggregator = "none";
+    private final static String[] Aggregator = {"none", "none", "max", "min"};
     private final static String[] RulesDownsamples = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
     private Map<String, String> Tagmap;
@@ -158,14 +158,17 @@ public class OddeeyMetricMeta {
 
 //        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
         TagVFilter.mapToFilters(querytags, filters, true);
+        int index;
+        index = 0;
         for (String dsrule : RulesDownsamples) {
             final TSSubQuery sub_query = new TSSubQuery();
             sub_query.setMetric(name);
-            sub_query.setAggregator(Aggregator);
+            sub_query.setAggregator(Aggregator[index]);
             sub_query.setFilters(filters);
             sub_query.setDownsample(dsrule);
 //            sub_query.setIndex(0);
             sub_queries.add(sub_query);
+            index++;
         }
 
         tsquery.setQueries(sub_queries);
@@ -223,14 +226,17 @@ public class OddeeyMetricMeta {
 
 //        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
         TagVFilter.mapToFilters(querytags, filters, true);
+        int index;
+        index = 0;        
         for (String dsrule : RulesDownsamples) {
             final TSSubQuery sub_query = new TSSubQuery();
             sub_query.setMetric(name);
-            sub_query.setAggregator(Aggregator);
+            sub_query.setAggregator(Aggregator[index]);
             sub_query.setFilters(filters);
             sub_query.setDownsample(dsrule);
 //            sub_query.setIndex(0);
             sub_queries.add(sub_query);
+            index++;
         }
 
         tsquery.setQueries(sub_queries);
@@ -301,16 +307,19 @@ public class OddeeyMetricMeta {
         final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
         MetriccheckRule Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
         if (Rule == null) {
+            Rule = new MetriccheckRule(time_key);
             GetRequest get = new GetRequest(table, getKey());
             ScanFilter filter = new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key));
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
+            if (ruledata.isEmpty())
+            {
+                LOGGER.warn("Rule for "+name+ "by "+CalendarObj.getTime() +" not exist in Database");
+            }
             for (final KeyValue kv : ruledata) {
                 if (kv.qualifier().length != 6) {
                     continue;
                 }
-
-                Rule = new MetriccheckRule(kv.qualifier());
 
                 // Herdakanucjun@ karevora
                 byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
@@ -321,9 +330,10 @@ public class OddeeyMetricMeta {
                 Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
                 b_value = Arrays.copyOfRange(kv.value(), 24, 32);
                 Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
-                RulesCache.put(Hex.encodeHexString(kv.qualifier()), Rule);
-                LOGGER.warn("get Rule from Database");
+                LOGGER.warn("get Rule from Database: "+name+ "by "+CalendarObj.getTime() );
             }
+
+            RulesCache.put(Hex.encodeHexString(time_key), Rule);
         }
         return Rule;
     }
