@@ -329,7 +329,7 @@ public class OddeeyMetricMeta {
                 Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
                 b_value = Arrays.copyOfRange(kv.value(), 24, 32);
                 Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
-                LOGGER.warn("get Rule from Database: " + name + "by " + CalendarObj.getTime());
+                LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
             }
 
             RulesCache.put(Hex.encodeHexString(time_key), Rule);
