@@ -227,7 +227,7 @@ public class OddeeyMetricMeta {
 //        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
         TagVFilter.mapToFilters(querytags, filters, true);
         int index;
-        index = 0;        
+        index = 0;
         for (String dsrule : RulesDownsamples) {
             final TSSubQuery sub_query = new TSSubQuery();
             sub_query.setMetric(name);
@@ -312,9 +312,8 @@ public class OddeeyMetricMeta {
             ScanFilter filter = new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key));
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
-            if (ruledata.isEmpty())
-            {
-                LOGGER.warn("Rule for "+name+ "by "+CalendarObj.getTime() +" not exist in Database");
+            if (ruledata.isEmpty()) {
+                LOGGER.warn("Rule for " + name + "by " + CalendarObj.getTime() + " not exist in Database");
             }
             for (final KeyValue kv : ruledata) {
                 if (kv.qualifier().length != 6) {
@@ -330,7 +329,7 @@ public class OddeeyMetricMeta {
                 Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
                 b_value = Arrays.copyOfRange(kv.value(), 24, 32);
                 Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
-                LOGGER.warn("get Rule from Database: "+name+ "by "+CalendarObj.getTime() );
+                LOGGER.warn("get Rule from Database: " + name + "by " + CalendarObj.getTime());
             }
 
             RulesCache.put(Hex.encodeHexString(time_key), Rule);
@@ -392,6 +391,19 @@ public class OddeeyMetricMeta {
 
         if (anObject instanceof OddeeyMetricMeta) {
             final OddeeyMetricMeta o = (OddeeyMetricMeta) anObject;
+            if (!Arrays.equals(o.getNameTSDBUID(), nameTSDBUID)) {
+                return false;
+            }
+            if (!tags.get("UUID").equals(o.getTags().get("UUID"))) {
+                return false;
+            }
+            if (!tags.get("host").equals(o.getTags().get("host"))) {
+                return false;
+            }
+            if (!tags.get("cluster").equals(o.getTags().get("cluster"))) {
+                return false;
+            }
+
 //            if (Arrays.equals(o.getNameTSDBUID(), nameTSDBUID) && (tags.equals(o.getTags()))) {
 //                return true;
 //            }
@@ -401,23 +413,26 @@ public class OddeeyMetricMeta {
 //                    && (tags.get("UUID").equals(o.getTags().get("UUID")))) != (Arrays.equals(o.getNameTSDBUID(), nameTSDBUID) && (tags.equals(o.getTags())))) {
 //                System.out.println(name + "-" + tags);
 //            }
-
-            if ((tags.get("cluster").equals(o.getTags().get("cluster")))
-                    && Arrays.equals(o.getNameTSDBUID(), nameTSDBUID)
-                    && (tags.get("host").equals(o.getTags().get("host")))
-                    && (tags.get("UUID").equals(o.getTags().get("UUID")))) {
-                return true;
-            }
+//            if ((tags.get("cluster").equals(o.getTags().get("cluster")))
+//                    && Arrays.equals(o.getNameTSDBUID(), nameTSDBUID)
+//                    && (tags.get("host").equals(o.getTags().get("host")))
+//                    && (tags.get("UUID").equals(o.getTags().get("UUID")))) {
+//                return true;
+//            }
+            return true;
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 53 * hash + Arrays.hashCode(this.nameTSDBUID);
-        hash = 53 * hash + Objects.hashCode(this.tags);
+        int hash = 5;        
+        hash = 53 * hash + Objects.hashCode(this.name);
+        hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
+        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
+        hash = 53 * hash + Arrays.hashCode(this.tags.get("cluster").getValueTSDBUID());
         return hash;
     }
+
 
 }

@@ -128,4 +128,9 @@ public class OddeyeTag {
         hash = 53 * hash + Arrays.hashCode(this.valueTSDBUID);
         return hash;
     }
+    
+    @Override
+    public String toString() {
+        return value;
+    }    
 }
