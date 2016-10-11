@@ -18,7 +18,7 @@ import org.hbase.async.Scanner;
  *
  * @author vahan
  */
-public final class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
+public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 
     private final ArrayList<String> Tagkeys = new ArrayList();
     private final ArrayList<String> Tagkeyv = new ArrayList();
