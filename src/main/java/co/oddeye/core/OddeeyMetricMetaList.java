@@ -36,7 +36,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    this.add(new OddeeyMetricMeta(row, tsdb, false));
+                    add(new OddeeyMetricMeta(row, tsdb, false));
                 }
             }
 //        GetRequest request = new GetRequest("oddeyerules", key);
@@ -88,6 +88,10 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
         return this.put(e.hashCode(), e);
     }
 
+    /**
+     * @param e
+     * @return the OddeeyMetricMeta
+     */    
     public OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " +e.hashCode() +" Is exist ");            
