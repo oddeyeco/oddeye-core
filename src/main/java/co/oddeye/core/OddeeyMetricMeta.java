@@ -179,15 +179,15 @@ public class OddeeyMetricMeta {
         for (int nq = 0; nq < nqueries; nq++) {
             final DataPoints[] series = tsdbqueries[nq].run();
             for (final DataPoints datapoints : series) {
-                try {
-                    Tagmap = datapoints.getTags();
-                    Tagmap.remove("alert_level");
-                    if (!Tagmap.equals(querytags)) {
-                        throw new Exception("Invalid tags");
-                    }
-                } catch (Exception e) {
-                    throw new Exception(e);
-                }
+//                try {
+//                    Tagmap = datapoints.getTags();
+//                    Tagmap.remove("alert_level");
+//                    if (!Tagmap.equals(querytags)) {
+//                        throw new Exception("Invalid tags");
+//                    }
+//                } catch (Exception e) {
+//                    throw new Exception(e);
+//                }
                 final SeekableView Datalist = datapoints.iterator();
                 while (Datalist.hasNext()) {
                     final DataPoint Point = Datalist.next();
@@ -261,15 +261,15 @@ public class OddeeyMetricMeta {
 
                 for (DataPoints[] series : query_results) {
                     for (final DataPoints datapoints : series) {
-                        try {
-                            Tagmap = datapoints.getTags();
-                            Tagmap.remove("alert_level");
-                            if (!Tagmap.equals(querytags)) {
-                                throw new Exception("Invalid tags");
-                            }
-                        } catch (Exception e) {
-                            throw new Exception(e);
-                        }
+//                        try {
+//                            Tagmap = datapoints.getTags();
+//                            Tagmap.remove("alert_level");
+//                            if (!Tagmap.equals(querytags)) {
+//                                throw new Exception("Invalid tags");
+//                            }
+//                        } catch (Exception e) {
+//                            throw new Exception(e);
+//                        }
                         final SeekableView Datalist = datapoints.iterator();
                         while (Datalist.hasNext()) {
                             final DataPoint Point = Datalist.next();

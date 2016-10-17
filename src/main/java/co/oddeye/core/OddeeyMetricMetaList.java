@@ -31,8 +31,13 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
         super();
         try {
             final HBaseClient client = tsdb.getClient();
+            
             Scanner scanner = client.newScanner(table);
-            scanner.setServerBlockCache(false);
+            scanner.setServerBlockCache(false);            
+            scanner.setMaxNumRows(1000);
+            scanner.setFamily("d".getBytes());
+            scanner.setQualifier("n".getBytes());
+            
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
