@@ -5,13 +5,13 @@
  */
 package co.oddeye.core;
 
-import co.oddeye.core.MetriccheckRule;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,12 +49,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMeta {
+public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta>{
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new HashMap<>();
+    private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
     private final static String[] Aggregator = {"max", "avg", "max", "min"};
@@ -73,6 +74,7 @@ public class OddeeyMetricMeta {
                 t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
                     if (!tag.getKey().toLowerCase().equals("alert_level")) {
                         tags.put(tag.getKey(), new OddeyeTag(tag, tsdb));
+                        tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
                     }
                 });
             }
@@ -97,6 +99,7 @@ public class OddeeyMetricMeta {
             byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
             OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
             tags.put(tag.getKey(), tag);
+            tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
@@ -125,6 +128,7 @@ public class OddeeyMetricMeta {
     }
 
     public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
+        tagsFullFilter = "";
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
         int i = 3;
         while (i < key.length) {
@@ -132,6 +136,7 @@ public class OddeeyMetricMeta {
             byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
             OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
             tags.put(tag.getKey(), tag);
+            tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
@@ -382,6 +387,10 @@ public class OddeeyMetricMeta {
     public Map<String, OddeyeTag> getTags() {
         return tags;
     }
+    
+    public String getFullFilter() {                
+        return tagsFullFilter;
+    }    
 
     @Override
     public boolean equals(Object anObject) {
@@ -426,7 +435,7 @@ public class OddeeyMetricMeta {
 
     @Override
     public int hashCode() {
-        int hash = 5;        
+        int hash = 5;
         hash = 53 * hash + Objects.hashCode(this.name);
         hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
         hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
@@ -434,5 +443,11 @@ public class OddeeyMetricMeta {
         return hash;
     }
 
+    @Override
+    public int compareTo(OddeeyMetricMeta o) {
+        int result = name.compareTo(o.getName());
+        return result;
+
+    }
 
 }
