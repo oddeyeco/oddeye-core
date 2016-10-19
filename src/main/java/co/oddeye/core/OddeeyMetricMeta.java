@@ -318,7 +318,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
-                LOGGER.warn("Rule for " + name + "by " + CalendarObj.getTime() + " not exist in Database");
+                LOGGER.warn("Rule for " + name + " by " + CalendarObj.getTime() + " not exist in Database");
             }
             for (final KeyValue kv : ruledata) {
                 if (kv.qualifier().length != 6) {

@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
 import net.opentsdb.core.TSDB;
@@ -15,7 +16,7 @@ import net.opentsdb.uid.UniqueId;
  *
  * @author vahan
  */
-public class OddeyeTag {
+public class OddeyeTag implements Serializable{
 
     private String key;
     private String value;
