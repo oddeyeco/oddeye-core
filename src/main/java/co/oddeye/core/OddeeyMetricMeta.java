@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import net.opentsdb.core.DataPoint;
 import net.opentsdb.core.DataPoints;
 import net.opentsdb.core.Query;
@@ -49,7 +50,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta>{
+public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta> {
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
@@ -74,12 +75,15 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
                     if (!tag.getKey().toLowerCase().equals("alert_level")) {
                         tags.put(tag.getKey(), new OddeyeTag(tag, tsdb));
-                        tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
+                        tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
                     }
                 });
             }
             if (key.equals("metric")) {
                 name = String.valueOf(value);
+                if (name == null) {
+                    throw new NullPointerException("Has not metriq name:" + json.toString());
+                }
                 try {
                     nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, name);
                 } catch (NoSuchUniqueName e) {
@@ -99,10 +103,14 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
             OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
             tags.put(tag.getKey(), tag);
-            tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
+            tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+        if (name == null) {
+            throw new NullPointerException("Has not metriq name:"+row);
+        }
+
         if (loadAllRules) {
             for (final KeyValue kv : row) {
                 if (kv.qualifier().length != 6) {
@@ -136,7 +144,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
             OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
             tags.put(tag.getKey(), tag);
-            tagsFullFilter =tagsFullFilter+tag.getKey()+"="+tag.getValue()+";";
+            tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
@@ -318,7 +326,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
-                LOGGER.warn("Rule for " + name + " by " + CalendarObj.getTime() + " not exist in Database");
+                LOGGER.warn("Rule by " + CalendarObj.getTime() + " for " + name + " " + tags.get("host").getValue() + " not exist in Database");
             }
             for (final KeyValue kv : ruledata) {
                 if (kv.qualifier().length != 6) {
@@ -387,10 +395,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public Map<String, OddeyeTag> getTags() {
         return tags;
     }
-    
-    public String getFullFilter() {                
+
+    public String getFullFilter() {
         return tagsFullFilter;
-    }    
+    }
 
     @Override
     public boolean equals(Object anObject) {
