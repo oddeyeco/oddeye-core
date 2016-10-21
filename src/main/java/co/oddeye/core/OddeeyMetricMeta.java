@@ -93,8 +93,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
             }
         });
-    }
-
+    }    
+    
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
         final byte[] key = row.get(0).key();
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
