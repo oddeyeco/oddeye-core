@@ -23,14 +23,15 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import net.opentsdb.core.DataPoint;
 import net.opentsdb.core.DataPoints;
+
 import net.opentsdb.core.Query;
 import net.opentsdb.core.SeekableView;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.core.TSQuery;
 import net.opentsdb.core.TSSubQuery;
+
 import net.opentsdb.query.filter.TagVFilter;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
@@ -105,7 +106,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             tags.put(tag.getKey(), tag);
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
             i = i + 6;
-        }
+        }                
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
             throw new NullPointerException("Has not metriq name:"+row);

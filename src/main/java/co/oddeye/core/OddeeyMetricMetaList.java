@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import co.oddeye.cache.CacheItemsList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,20 +14,24 @@ import net.opentsdb.core.TSDB;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.KeyValue;
 import org.hbase.async.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author vahan
  */
 public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
-
+    
     private final ArrayList<String> Tagkeys = new ArrayList();
     private final ArrayList<String> Tagkeyv = new ArrayList();
-
+    
+    static final Logger LOGGER = LoggerFactory.getLogger(CacheItemsList.class);
+    
     public OddeeyMetricMetaList() {
         super();
     }
-
+    
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table) throws Exception {
         super();
         try {
@@ -41,7 +46,12 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    add(new OddeeyMetricMeta(row, tsdb, false));
+                    try {
+                        add(new OddeeyMetricMeta(row, tsdb, false));                        
+                    } catch (Exception e) {
+                        LOGGER.warn("Can not add row to metrics " + row);
+                    }
+                    
                 }
             }
 //        GetRequest request = new GetRequest("oddeyerules", key);
@@ -49,7 +59,6 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 //        client.get(request);
         } catch (Exception ex) {
             throw ex;
-
         }
     }
 
@@ -99,20 +108,20 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
      */    
     public OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " +e.hashCode() +" Is exist ");            
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");            
         }
-
+        
         e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEach((tagkey) -> {
             Tagkeys.add(tagkey);
         });
-
+        
         e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEach((Map.Entry<String, OddeyeTag> tag) -> {
             Tagkeyv.add(tag.getValue().getValue());
         });
-
+        
         return this.put(e.hashCode(), e);
     }
-
+    
     public String[] getTagK() {
         String[] stockArr = new String[Tagkeys.size()];
         return Tagkeys.toArray(stockArr);
@@ -124,7 +133,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
     public String[] getTagkeyV() {
         String[] stockArr = new String[Tagkeyv.size()];
         return Tagkeyv.toArray(stockArr);
-
+        
     }
-
+    
 }
