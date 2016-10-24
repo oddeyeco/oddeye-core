@@ -56,7 +56,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
     private byte[] nameTSDBUID;
-    private final Map<String, OddeyeTag> tags = new TreeMap();
+    private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
