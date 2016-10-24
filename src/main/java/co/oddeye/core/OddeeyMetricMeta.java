@@ -56,7 +56,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
     private byte[] nameTSDBUID;
-    private final Map<String, OddeyeTag> tags = new HashMap<>();
+    private final Map<String, OddeyeTag> tags = new TreeMap();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
@@ -93,23 +93,34 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
             }
         });
-    }    
-    
+    }
+
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
+        
         final byte[] key = row.get(0).key();
+        if ((key.length-3)%6 != 0 )
+        {
+            throw new Exception("Invalid key size:"+key.length);
+        }
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
         int i = 3;
         while (i < key.length) {
             byte[] tgkey = Arrays.copyOfRange(key, i, i + 3);
             byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
-            OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
-            tags.put(tag.getKey(), tag);
-            tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
+            OddeyeTag tag;
+            try {
+                tag = new OddeyeTag(tgkey, tgval, tsdb);
+                tags.put(tag.getKey(), tag);
+                tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
+            } catch (Exception e) {
+                LOGGER.warn(e.toString());
+            }
+
             i = i + 6;
-        }                
+        }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
-            throw new NullPointerException("Has not metriq name:"+row);
+            throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
         }
 
         if (loadAllRules) {
@@ -381,8 +392,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public byte[] getKey() {
         byte[] key;
-        key = nameTSDBUID;
-
+        key = nameTSDBUID;        
         for (OddeyeTag tag : tags.values()) {
             key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
             key = ArrayUtils.addAll(key, tag.getValueTSDBUID());
