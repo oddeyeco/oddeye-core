@@ -9,6 +9,7 @@ import co.oddeye.cache.CacheItemsList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
 import org.hbase.async.HBaseClient;
@@ -23,8 +24,8 @@ import org.slf4j.LoggerFactory;
  */
 public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 
-    private final ArrayList<String> Tagkeys = new ArrayList();
-    private final ArrayList<String> Tagkeyv = new ArrayList();
+    protected final ArrayList<String> Tagkeys = new ArrayList();
+    protected final ArrayList<String> Tagkeyv = new ArrayList();
 
     static final Logger LOGGER = LoggerFactory.getLogger(CacheItemsList.class);
 
@@ -32,8 +33,9 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
         super();
     }
 
-    public OddeeyMetricMetaList(TSDB tsdb, byte[] table) throws Exception {
+    public OddeeyMetricMetaList(TSDB tsdb, byte[] table) {
         super();
+
         try {
             final HBaseClient client = tsdb.getClient();
 
@@ -47,7 +49,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
                     try {
-                        add(new OddeeyMetricMeta(row, tsdb, false));
+                        OddeeyMetricMeta add = add(new OddeeyMetricMeta(row, tsdb, false));
                     } catch (Exception e) {
                         LOGGER.warn(e.toString());
                         LOGGER.warn("Can not add row to metrics " + row);
@@ -55,12 +57,10 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 
                 }
             }
-//        GetRequest request = new GetRequest("oddeyerules", key);
-
-//        client.get(request);
         } catch (Exception ex) {
-            throw ex;
+            java.util.logging.Logger.getLogger(OddeeyMetricMetaList.class.getName()).log(Level.SEVERE, null, ex);
         }
+
     }
 
 //    public OddeeyMetricMetaList getbyTagK_or(String[] tagkeys) {
@@ -107,7 +107,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
      * @param e
      * @return the OddeeyMetricMeta
      */
-    public OddeeyMetricMeta add(OddeeyMetricMeta e) {
+    private OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");            
         }
