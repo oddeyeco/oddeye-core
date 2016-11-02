@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
+import org.hbase.async.DeleteRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.KeyValue;
 import org.hbase.async.Scanner;
@@ -50,6 +51,10 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
                 for (final ArrayList<KeyValue> row : rows) {
                     try {
                         OddeeyMetricMeta add = add(new OddeeyMetricMeta(row, tsdb, false));
+                    } catch (InvalidKeyException e) {
+                        LOGGER.warn("InvalidKeyException " + row +" Is deleted");
+                        final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
+                        client.delete(deleterequest).joinUninterruptibly();
                     } catch (Exception e) {
                         LOGGER.warn(e.toString());
                         LOGGER.warn("Can not add row to metrics " + row);
@@ -109,7 +114,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
      */
     private OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");            
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");
         }
 
         e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEach((tagkey) -> {

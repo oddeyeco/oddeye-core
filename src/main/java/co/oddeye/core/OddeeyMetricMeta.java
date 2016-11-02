@@ -37,8 +37,10 @@ import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.hbase.async.BinaryComparator;
 import org.hbase.async.CompareFilter;
+import org.hbase.async.DeleteRequest;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.KeyValue;
@@ -96,11 +98,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
-        
+
         final byte[] key = row.get(0).key();
-        if ((key.length-3)%6 != 0 )
-        {
-            throw new Exception("Invalid key size:"+key.length);
+        if ((key.length - 3) % 6 != 0) {
+            throw new InvalidKeyException("Invalid key size:" + key.length);
         }
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
         int i = 3;
@@ -132,15 +133,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 if (RuleItem == null) {
                     RuleItem = new MetriccheckRule(kv.qualifier());
                 }
+
+                RuleItem.update(kv.value());
                 // Herdakanucjun@ karevora
-                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
-                RuleItem.update("avg", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
-                RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
-                RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
-                RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
+//                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
+//                RuleItem.update("avg", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
+//                RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
+//                RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
+//                RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
                 RulesCache.put(Hex.encodeHexString(kv.qualifier()), RuleItem);
 
             }
@@ -162,6 +165,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
     }
 
+    @Deprecated
     public void CalculateRules(long startdate, long enddate, TSDB tsdb) throws Exception {
         final TSQuery tsquery = new TSQuery();
 
@@ -234,6 +238,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
+    @Deprecated
     public void CalculateRulesAsync(long startdate, long enddate, TSDB tsdb) throws Exception {
         final TSQuery tsquery = new TSQuery();
 
@@ -324,6 +329,116 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
+    public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
+        final TSQuery tsquery = new TSQuery();
+
+        final Calendar tmpCalendarObj = Calendar.getInstance();
+        tmpCalendarObj.setTimeInMillis(startdate);
+        byte[] time_key;
+        while (tmpCalendarObj.getTimeInMillis() < enddate) {
+            time_key = ByteBuffer.allocate(6).putShort((short) tmpCalendarObj.get(Calendar.YEAR)).putShort((short) tmpCalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) tmpCalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+            final MetriccheckRule RuleItem = new MetriccheckRule(time_key);
+            RuleItem.setHasNotData(true);
+            RulesCache.put(Hex.encodeHexString(time_key), RuleItem);
+            tmpCalendarObj.add(Calendar.HOUR, 1);
+        }
+
+        tsquery.setStart(Long.toString(startdate));
+        tsquery.setEnd(Long.toString(enddate));
+        final List<TagVFilter> filters = new ArrayList<>();
+        final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
+        final Map<String, String> querytags = new HashMap<>();
+        final Map<String, SeekableView> datalist = new TreeMap<>();
+        final Calendar CalendarObj = Calendar.getInstance();
+
+        tags.entrySet().stream().forEach((tag) -> {
+            querytags.put(tag.getKey(), tag.getValue().getValue());
+        });
+
+//        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
+        TagVFilter.mapToFilters(querytags, filters, true);
+        final TSSubQuery sub_query = new TSSubQuery();
+        sub_query.setMetric(name);
+        sub_query.setAggregator("none");
+        sub_query.setFilters(filters);
+//            sub_query.setDownsample(dsrule);
+//            sub_query.setIndex(0);
+        sub_queries.add(sub_query);
+
+        tsquery.setQueries(sub_queries);
+        tsquery.validateAndSetQuery();
+        Query[] tsdbqueries = tsquery.buildQueries(tsdb);
+
+        final int nqueries = tsdbqueries.length;
+        final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
+                        
+        for (int nq = 0; nq < nqueries; nq++) {
+            deferreds.add(tsdbqueries[nq].runAsync());
+        }
+
+        class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
+
+            @Override
+            public Object call(final ArrayList<DataPoints[]> query_results)
+                    throws Exception {
+                double R_value;
+                byte[] time_key;
+                MetriccheckRule RuleItem;
+//                DescriptiveStatistics stats = new DescriptiveStatistics();
+                Map<String, DescriptiveStatistics> statslist = new HashMap<>();                
+                for (DataPoints[] series : query_results) {
+                    for (final DataPoints datapoints : series) {
+                        final SeekableView Datalist = datapoints.iterator();
+                        while (Datalist.hasNext()) {
+                            final DataPoint Point = Datalist.next();
+                            CalendarObj.setTimeInMillis(Point.timestamp());
+                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();                            
+                            DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
+                            if (stats == null) {
+                                OddeeyMetricMeta.LOGGER.warn("Date:" + CalendarObj.getTime());
+                                stats = new DescriptiveStatistics();
+                                statslist.put(Hex.encodeHexString(time_key), stats);
+                            }
+                            R_value = Point.doubleValue();
+                            stats.addValue(R_value);
+                            statslist.replace(Hex.encodeHexString(time_key), stats);
+                        }
+                    }
+                }
+
+                
+                
+                for (final Map.Entry<String, DescriptiveStatistics> stats : statslist.entrySet()) {
+                    final String s_time_key = stats.getKey();
+                    RuleItem = RulesCache.getIfPresent(s_time_key);
+                    time_key = Hex.decodeHex(s_time_key.toCharArray());
+                    if (RuleItem == null) {
+
+                        RuleItem = new MetriccheckRule(time_key);
+                    }
+
+//                    double GeometricMean = stats.getValue().getGeometricMean();
+                    OddeeyMetricMeta.LOGGER.warn("Count:" + stats.getValue().getN());
+                    RuleItem.update("avg", stats.getValue().getMean());
+                    RuleItem.update("dev", stats.getValue().getStandardDeviation());
+                    RuleItem.update("min", stats.getValue().getMin());
+                    RuleItem.update("max", stats.getValue().getMax());
+                    RuleItem.setHasNotData(false);
+                    RulesCache.put(s_time_key, RuleItem);
+//                    double aa = stats.getValue().getStandardDeviation();
+                }
+
+                return null;
+            }
+        }
+        try {
+            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB());
+            return deferreds;
+        } catch (Exception e) {
+            throw new RuntimeException("Shouldn't be here", e);
+        }
+    }
+
     public ConcurrentMap<String, MetriccheckRule> getRulesMap() {
         return RulesCache.asMap();
     }
@@ -337,23 +452,23 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             ScanFilter filter = new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key));
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
-            if (ruledata.isEmpty()) {
+            if (ruledata.isEmpty()) {                
                 LOGGER.warn("Rule by " + CalendarObj.getTime() + " for " + name + " " + tags.get("host").getValue() + " not exist in Database");
             }
             for (final KeyValue kv : ruledata) {
                 if (kv.qualifier().length != 6) {
                     continue;
                 }
-
+                Rule.update(kv.value());
                 // Herdakanucjun@ karevora
-                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
-                Rule.update("avg", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
-                Rule.update("dev", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
-                Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
-                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
-                Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
+//                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
+//                Rule.update("avg", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
+//                Rule.update("dev", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
+//                Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
+//                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
+//                Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
                 LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
             }
 
@@ -392,7 +507,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public byte[] getKey() {
         byte[] key;
-        key = nameTSDBUID;        
+        key = nameTSDBUID;
         for (OddeyeTag tag : tags.values()) {
             key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
             key = ArrayUtils.addAll(key, tag.getValueTSDBUID());

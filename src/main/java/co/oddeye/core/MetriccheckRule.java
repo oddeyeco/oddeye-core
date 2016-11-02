@@ -25,25 +25,24 @@ public class MetriccheckRule {
     private final byte[] key;
     private final byte[] qualifier;
     private boolean isValidRule;
+    private boolean hasNotData = false;
 
-    
-    public MetriccheckRule(byte[] p_key,byte[] p_qualifier) {
+    public MetriccheckRule(byte[] p_key, byte[] p_qualifier) {
         this.isValidRule = false;
 
         key = p_key; //ByteBuffer.allocate(12).putInt(CalendarObj.get(Calendar.YEAR)).putInt(CalendarObj.get(Calendar.DAY_OF_YEAR)).putInt(houre).array();
         qualifier = p_qualifier; //qualifier = ArrayUtils.addAll(datapoints.metricUID(), tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("UUID"))); //qualifier = ArrayUtils.addAll(qualifier, tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("host")));   
-        
-        id = ArrayUtils.addAll(key,qualifier);
-    }    
-    
-    public MetriccheckRule(byte[] p_key) {
-        this.isValidRule = false;
 
+        id = ArrayUtils.addAll(key, qualifier);
+    }
+
+    public MetriccheckRule(byte[] p_key) {
+        this.isValidRule = false;        
         key = p_key; //ByteBuffer.allocate(12).putInt(CalendarObj.get(Calendar.YEAR)).putInt(CalendarObj.get(Calendar.DAY_OF_YEAR)).putInt(houre).array();        
         qualifier = null;
         id = key;
-    }        
-    
+    }
+
     public MetriccheckRule(KeyValue data) {
         this.isValidRule = false;
 
@@ -62,12 +61,11 @@ public class MetriccheckRule {
 
         key = data.key(); //ByteBuffer.allocate(12).putInt(CalendarObj.get(Calendar.YEAR)).putInt(CalendarObj.get(Calendar.DAY_OF_YEAR)).putInt(houre).array();
         qualifier = data.qualifier(); //qualifier = ArrayUtils.addAll(datapoints.metricUID(), tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("UUID"))); //qualifier = ArrayUtils.addAll(qualifier, tsdb.getUID(UniqueId.UniqueIdType.TAGV, Tagmap.get("host")));   
-        
-        id = ArrayUtils.addAll(key,qualifier);
+
+        id = ArrayUtils.addAll(key, qualifier);
     }
 
-        
-    public MetriccheckRule update(byte[] family,byte[] value) throws Exception {
+    public MetriccheckRule update(byte[] family, byte[] value) throws Exception {
 
         if (Arrays.equals("min".getBytes(), family)) {
             min = ByteBuffer.wrap(value).getDouble();
@@ -82,30 +80,29 @@ public class MetriccheckRule {
             dev = ByteBuffer.wrap(value).getDouble();
         }
 
-        
-    return this;
+        return this;
     }
-    
-    public MetriccheckRule update(String family,Double value) throws Exception {
 
-        if ("min".equals(family) ) {
+    public MetriccheckRule update(String family, Double value) throws Exception {
+
+        if ("min".equals(family)) {
             min = value;
         }
-        if ("max".equals(family) ) {
+        if ("max".equals(family)) {
             max = value;
         }
-        if ("avg".equals(family) ) {
+        if ("avg".equals(family)) {
             avg = value;
         }
-        if ("dev".equals(family) ) {
+        if ("dev".equals(family)) {
             dev = value;
         }
 
         isValidRule = true;
-        
-    return this;
+
+        return this;
     }
-    
+
     public MetriccheckRule update(KeyValue data) throws Exception {
 
         if (!Arrays.equals(key, data.key())) {
@@ -132,12 +129,11 @@ public class MetriccheckRule {
         return this;
     }
 
-    
     @Override
-    public String toString()
-    {
-        return "avg="+String.format("%1$,.2f", avg)+"dev="+String.format("%1$,.2f", dev)+"min="+String.format("%1$,.2f", min)+"max="+String.format("%1$,.2f", max);
+    public String toString() {
+        return "avg=" + String.format("%1$,.2f", avg) + "dev=" + String.format("%1$,.2f", dev) + "min=" + String.format("%1$,.2f", min) + "max=" + String.format("%1$,.2f", max);
     }
+
     /**
      * @return the min
      */
@@ -183,24 +179,65 @@ public class MetriccheckRule {
     public byte[] getKey() {
         return key;
     }
-    
-    public byte[] getValues() {
-        byte[] result;
+
+    public MetriccheckRule update(byte[] value) throws Exception {
         // Herdakanucjun@ karevora
-        result = ByteBuffer.allocate(32).putDouble(avg).putDouble(dev).putDouble(min).putDouble(max).array();
-        
-//            byte[] b_value = Arrays.copyOfRange(result, 0, 8);
-//            avg = ByteBuffer.wrap(b_value).getDouble();
-//            b_value = Arrays.copyOfRange(key, 8, 16);
-//            RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
-//            b_value = Arrays.copyOfRange(key, 16, 24);
-//            RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
-//            b_value = Arrays.copyOfRange(key, 24, 32);
-//            RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
-        
-        
-        return result;
-    }    
+        hasNotData = true;
+        byte[] b_value = Arrays.copyOfRange(value, 0, 8);
+        Double val = ByteBuffer.wrap(b_value).getDouble();
+        if (val > Double.MIN_VALUE) {
+            this.update("avg", val);
+        }
+        b_value = Arrays.copyOfRange(value, 8, 16);
+        val = ByteBuffer.wrap(b_value).getDouble();
+        if (val > Double.MIN_VALUE) {
+            this.update("dev", val);
+        }
+        b_value = Arrays.copyOfRange(value, 16, 24);
+        val = ByteBuffer.wrap(b_value).getDouble();
+        if (val > Double.MIN_VALUE) {
+            this.update("min", val);
+        }
+        b_value = Arrays.copyOfRange(value, 24, 32);
+        val = ByteBuffer.wrap(b_value).getDouble();
+        if (val > Double.MIN_VALUE) {
+            this.update("max", val);
+        }
+        if (isValidRule) {
+            hasNotData = false;
+        }
+
+        return this;
+    }
+
+    public byte[] getValues() {
+        ByteBuffer result;
+        // Herdakanucjun@ karevora
+
+        result = ByteBuffer.allocate(32);
+
+        if (avg != null) {
+            result.putDouble(avg);
+        } else {
+            result.putDouble(Double.MIN_VALUE);
+        }
+        if (dev != null) {
+            result.putDouble(dev);
+        } else {
+            result.putDouble(Double.MIN_VALUE);
+        }
+        if (min != null) {
+            result.putDouble(min);
+        } else {
+            result.putDouble(Double.MIN_VALUE);
+        }
+        if (max != null) {
+            result.putDouble(max);
+        } else {
+            result.putDouble(Double.MIN_VALUE);
+        }
+        return result.array();
+    }
 
     /**
      * @return the qualifier
@@ -214,6 +251,20 @@ public class MetriccheckRule {
      */
     public boolean isIsValidRule() {
         return isValidRule;
+    }
+
+    /**
+     * @return the hasNotData
+     */
+    public boolean isHasNotData() {
+        return hasNotData;
+    }
+
+    /**
+     * @param hasNotData the hasNotData to set
+     */
+    public void setHasNotData(boolean hasNotData) {
+        this.hasNotData = hasNotData;
     }
 
 }
