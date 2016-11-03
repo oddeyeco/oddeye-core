@@ -460,15 +460,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     continue;
                 }
                 Rule.update(kv.value());
-                // Herdakanucjun@ karevora
-//                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
-//                Rule.update("avg", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
-//                Rule.update("dev", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
-//                Rule.update("min", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
-//                Rule.update("max", ByteBuffer.wrap(b_value).getDouble());
                 LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
             }
 
