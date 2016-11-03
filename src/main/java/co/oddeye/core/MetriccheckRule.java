@@ -185,22 +185,26 @@ public class MetriccheckRule {
         hasNotData = true;
         byte[] b_value = Arrays.copyOfRange(value, 0, 8);
         Double val = ByteBuffer.wrap(b_value).getDouble();
-        if (val > Double.MIN_VALUE) {
+        if (val > Double.NEGATIVE_INFINITY) {
             this.update("avg", val);
         }
         b_value = Arrays.copyOfRange(value, 8, 16);
         val = ByteBuffer.wrap(b_value).getDouble();
-        if (val > Double.MIN_VALUE) {
+        if (val > Double.NEGATIVE_INFINITY) {
             this.update("dev", val);
+        }
+        else
+        {
+           this.dev = 0.0;
         }
         b_value = Arrays.copyOfRange(value, 16, 24);
         val = ByteBuffer.wrap(b_value).getDouble();
-        if (val > Double.MIN_VALUE) {
+        if (val > Double.NEGATIVE_INFINITY) {
             this.update("min", val);
         }
         b_value = Arrays.copyOfRange(value, 24, 32);
         val = ByteBuffer.wrap(b_value).getDouble();
-        if (val > Double.MIN_VALUE) {
+        if (val > Double.NEGATIVE_INFINITY) {
             this.update("max", val);
         }
         if (isValidRule) {
@@ -219,22 +223,22 @@ public class MetriccheckRule {
         if (avg != null) {
             result.putDouble(avg);
         } else {
-            result.putDouble(Double.MIN_VALUE);
+            result.putDouble(Double.NEGATIVE_INFINITY);
         }
         if (dev != null) {
             result.putDouble(dev);
         } else {
-            result.putDouble(Double.MIN_VALUE);
+            result.putDouble(Double.NEGATIVE_INFINITY);
         }
         if (min != null) {
             result.putDouble(min);
         } else {
-            result.putDouble(Double.MIN_VALUE);
+            result.putDouble(Double.NEGATIVE_INFINITY);
         }
         if (max != null) {
             result.putDouble(max);
         } else {
-            result.putDouble(Double.MIN_VALUE);
+            result.putDouble(Double.NEGATIVE_INFINITY);
         }
         return result.array();
     }
