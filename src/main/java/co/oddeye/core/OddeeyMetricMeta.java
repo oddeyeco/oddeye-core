@@ -99,7 +99,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
 
-        final byte[] key = row.get(0).key();
+        final byte[] key = row.get(0).key();        
         if ((key.length - 3) % 6 != 0) {
             throw new InvalidKeyException("Invalid key size:" + key.length);
         }
@@ -394,8 +394,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                             CalendarObj.setTimeInMillis(Point.timestamp());
                             time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();                            
                             DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
-                            if (stats == null) {
-                                OddeeyMetricMeta.LOGGER.warn("Date:" + CalendarObj.getTime());
+                            if (stats == null) {                                
                                 stats = new DescriptiveStatistics();
                                 statslist.put(Hex.encodeHexString(time_key), stats);
                             }
@@ -418,7 +417,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     }
 
 //                    double GeometricMean = stats.getValue().getGeometricMean();
-                    OddeeyMetricMeta.LOGGER.warn("Count:" + stats.getValue().getN());
+//                    OddeeyMetricMeta.LOGGER.warn("Count:" + stats.getValue().getN());
                     RuleItem.update("avg", stats.getValue().getMean());
                     RuleItem.update("dev", stats.getValue().getStandardDeviation());
                     RuleItem.update("min", stats.getValue().getMin());
