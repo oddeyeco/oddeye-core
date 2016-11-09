@@ -174,7 +174,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         } catch (NoSuchUniqueName e) {
             nameTSDBUID = tsdb.assignUid("metric", name);
         }
-        final Map<String, String> tM2 = Collections.unmodifiableMap(metric.getTags());
+        final Map<String, String> tM2 = Collections.unmodifiableMap(metric.getTSDBTags());
         
         for (Map.Entry<String, String> tag : tM2.entrySet()) {
             tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
@@ -354,7 +354,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         byte[] time_key;
         while (tmpCalendarObj.getTimeInMillis() < enddate) {
             time_key = ByteBuffer.allocate(6).putShort((short) tmpCalendarObj.get(Calendar.YEAR)).putShort((short) tmpCalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) tmpCalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-            final MetriccheckRule RuleItem = new MetriccheckRule(time_key);
+            final MetriccheckRule RuleItem = new MetriccheckRule(getKey(), time_key);
             RuleItem.setHasNotData(true);
             RulesCache.put(Hex.encodeHexString(time_key), RuleItem);
             tmpCalendarObj.add(Calendar.HOUR, 1);
@@ -510,7 +510,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             get.setFilter(filterlist);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
-                LOGGER.warn("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
+                LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
             } else {
                 for (final KeyValue kv : ruledata) {
                     if (kv.qualifier().length != 6) {
