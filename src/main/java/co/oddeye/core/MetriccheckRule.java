@@ -202,11 +202,12 @@ public class MetriccheckRule implements Serializable {
         byte[] b_value = Arrays.copyOfRange(value, 0, 8);
         Double val = ByteBuffer.wrap(b_value).getDouble();
         if (val > Double.NEGATIVE_INFINITY) {
+            hasNotData = false;
             this.update("avg", val);
         }
         b_value = Arrays.copyOfRange(value, 8, 16);
         val = ByteBuffer.wrap(b_value).getDouble();
-        if (val > Double.NEGATIVE_INFINITY) {
+        if (val > Double.NEGATIVE_INFINITY) {            
             this.update("dev", val);
         }
         else
@@ -216,15 +217,14 @@ public class MetriccheckRule implements Serializable {
         b_value = Arrays.copyOfRange(value, 16, 24);
         val = ByteBuffer.wrap(b_value).getDouble();
         if (val > Double.NEGATIVE_INFINITY) {
+            hasNotData = false;
             this.update("min", val);
         }
         b_value = Arrays.copyOfRange(value, 24, 32);
         val = ByteBuffer.wrap(b_value).getDouble();
         if (val > Double.NEGATIVE_INFINITY) {
-            this.update("max", val);
-        }
-        if (isValidRule) {
             hasNotData = false;
+            this.update("max", val);
         }
 
         return this;

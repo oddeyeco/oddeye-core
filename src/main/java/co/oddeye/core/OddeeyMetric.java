@@ -8,6 +8,7 @@ package co.oddeye.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
@@ -97,7 +98,7 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> {
     }
 
     public Map<String, String> getTSDBTags() {
-        final Map<String, String> litetags = tags;
+        final Map<String, String> litetags = new HashMap<>(tags) ;
         litetags.remove("alert_level");
         return litetags;
     }
