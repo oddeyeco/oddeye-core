@@ -16,7 +16,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +42,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.hbase.async.BinaryComparator;
 import org.hbase.async.CompareFilter;
-import org.hbase.async.DeleteRequest;
+import org.hbase.async.FilterList;
 import org.hbase.async.GetRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.KeyValue;
@@ -99,7 +101,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
 
-        final byte[] key = row.get(0).key();        
+        final byte[] key = row.get(0).key();
         if ((key.length - 3) % 6 != 0) {
             throw new InvalidKeyException("Invalid key size:" + key.length);
         }
@@ -163,6 +165,21 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+    }
+
+    public OddeeyMetricMeta(OddeeyMetric metric, TSDB tsdb) throws Exception {
+        name = metric.getName();
+        try {
+            nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, name);
+        } catch (NoSuchUniqueName e) {
+            nameTSDBUID = tsdb.assignUid("metric", name);
+        }
+        final Map<String, String> tM2 = Collections.unmodifiableMap(metric.getTags());
+        
+        for (Map.Entry<String, String> tag : tM2.entrySet()) {
+            tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
+            tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
+        }
     }
 
     @Deprecated
@@ -371,7 +388,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
         final int nqueries = tsdbqueries.length;
         final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
-                        
+
         for (int nq = 0; nq < nqueries; nq++) {
             deferreds.add(tsdbqueries[nq].runAsync());
         }
@@ -385,16 +402,16 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 byte[] time_key;
                 MetriccheckRule RuleItem;
 //                DescriptiveStatistics stats = new DescriptiveStatistics();
-                Map<String, DescriptiveStatistics> statslist = new HashMap<>();                
+                Map<String, DescriptiveStatistics> statslist = new HashMap<>();
                 for (DataPoints[] series : query_results) {
                     for (final DataPoints datapoints : series) {
                         final SeekableView Datalist = datapoints.iterator();
                         while (Datalist.hasNext()) {
                             final DataPoint Point = Datalist.next();
                             CalendarObj.setTimeInMillis(Point.timestamp());
-                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();                            
+                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
                             DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
-                            if (stats == null) {                                
+                            if (stats == null) {
                                 stats = new DescriptiveStatistics();
                                 statslist.put(Hex.encodeHexString(time_key), stats);
                             }
@@ -405,8 +422,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     }
                 }
 
-                
-                
                 for (final Map.Entry<String, DescriptiveStatistics> stats : statslist.entrySet()) {
                     final String s_time_key = stats.getKey();
                     RuleItem = RulesCache.getIfPresent(s_time_key);
@@ -451,7 +466,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             ScanFilter filter = new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key));
             get.setFilter(filter);
             final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
-            if (ruledata.isEmpty()) {                
+            if (ruledata.isEmpty()) {
                 LOGGER.warn("Rule by " + CalendarObj.getTime() + " for " + name + " " + tags.get("host").getValue() + " not exist in Database");
             }
             for (final KeyValue kv : ruledata) {
@@ -465,6 +480,58 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             RulesCache.put(Hex.encodeHexString(time_key), Rule);
         }
         return Rule;
+    }
+
+    public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
+        Map<String, MetriccheckRule> rules = new TreeMap<>();
+        MetriccheckRule Rule;
+
+        List<ScanFilter> list = new LinkedList<>();
+//        list.add(new ValueFilter(CompareFilter.CompareOp.GREATER,new BinaryComparator(data)));
+//        list.add(new ValueFilter(CompareFilter.CompareOp.LESS,new BinaryComparator(Negdata)));
+//        FilterList filterlist = new FilterList(list,FilterList.Operator.MUST_PASS_ALL);
+//        scanner.setFilter(filterlist);        
+
+        for (int i = 0; i < days; i++) {
+            final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+            Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
+            if (Rule == null) {
+                Rule = new MetriccheckRule(getKey(), time_key);
+                list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
+            }
+            rules.put(Hex.encodeHexString(time_key), Rule);
+
+            CalendarObj.add(Calendar.DATE, -1);
+        }
+
+        if (list.size() > 0) {
+            FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
+            GetRequest get = new GetRequest(table, getKey());
+            get.setFilter(filterlist);
+            final ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
+            if (ruledata.isEmpty()) {
+                LOGGER.warn("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
+            } else {
+                for (final KeyValue kv : ruledata) {
+                    if (kv.qualifier().length != 6) {
+                        continue;
+                    }
+                    Rule = new MetriccheckRule(getKey(), kv.qualifier());
+                    Rule.update(kv.value());
+                    rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
+                    LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
+                }
+            }
+
+            try {
+                RulesCache.putAll(rules);
+            } catch (Exception e) {
+                LOGGER.info("has Emty Rules: ");
+            }
+
+        }
+        return rules;
+
     }
 
     public void getRulePutValues(byte[][] qualifiers, byte[][] values) {

@@ -5,8 +5,10 @@
  */
 package co.oddeye.core;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Calendar;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.hbase.async.KeyValue;
@@ -15,7 +17,7 @@ import org.hbase.async.KeyValue;
  *
  * @author vahan
  */
-public class MetriccheckRule {
+public class MetriccheckRule implements Serializable {
 
     private Double min;
     private Double max;
@@ -27,6 +29,20 @@ public class MetriccheckRule {
     private boolean isValidRule;
     private boolean hasNotData = false;
 
+    static public Calendar QualifierToCalendar(byte[] p_qualifier)
+    {
+        int i = 2;
+        byte[] year = Arrays.copyOfRange(p_qualifier, 0, 2);
+        byte[] day = Arrays.copyOfRange(p_qualifier, 2, 4);
+        byte[] houre = Arrays.copyOfRange(p_qualifier, 4, 6);
+        Calendar cal= Calendar.getInstance();
+        cal.setTimeInMillis(0);
+        cal.set(Calendar.YEAR, ByteBuffer.wrap(year).getShort());
+        cal.set(Calendar.DAY_OF_YEAR, ByteBuffer.wrap(day).getShort());
+        cal.set(Calendar.HOUR, ByteBuffer.wrap(houre).getShort());
+        return cal;
+    }
+    
     public MetriccheckRule(byte[] p_key, byte[] p_qualifier) {
         this.isValidRule = false;
 
