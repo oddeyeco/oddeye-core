@@ -626,11 +626,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 53 * hash + Objects.hashCode(this.name);
-        hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
-        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
-        hash = 53 * hash + Arrays.hashCode(this.tags.get("cluster").getValueTSDBUID());
+//        int hash = 5;
+//        hash = 53 * hash + Objects.hashCode(this.name);
+//        hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
+//        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
+//        hash = 53 * hash + Arrays.hashCode(this.getKey());
+        int hash = Objects.hashCode(Hex.encodeHexString(this.getKey()));
         return hash;
     }
 
