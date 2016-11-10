@@ -5,7 +5,6 @@
  */
 package co.oddeye.core;
 
-import co.oddeye.cache.CacheItemsList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +27,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
     protected final ArrayList<String> Tagkeys = new ArrayList();
     protected final ArrayList<String> Tagkeyv = new ArrayList();
 
-    static final Logger LOGGER = LoggerFactory.getLogger(CacheItemsList.class);
+    static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
     public OddeeyMetricMetaList() {
         super();
@@ -56,7 +55,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
                         final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
                         client.delete(deleterequest).joinUninterruptibly();
                     } catch (Exception e) {
-                        LOGGER.warn(e.toString());
+                        LOGGER.warn(globalFunctions.stackTrace(e));
                         LOGGER.warn("Can not add row to metrics " + row);
                     }
 
