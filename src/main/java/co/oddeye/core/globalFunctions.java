@@ -23,6 +23,9 @@ public class globalFunctions {
     private static HBaseClient client = null;
     private static TSDB tsdb = null;
 
+    private static HBaseClient secindaryclient = null;
+    private static TSDB secindarytsdb = null;    
+    
     static public String stackTrace(Exception cause) {
         if (cause == null) {
             return "-/-";
@@ -62,6 +65,44 @@ public class globalFunctions {
 
         }
         return client;
+    }
+
+    /**
+     * @param ClientConfig
+     * @return the secindaryclient
+     */
+    public static HBaseClient getSecindaryclient(org.hbase.async.Config ClientConfig) {
+        while (secindaryclient == null) {
+            try {
+                secindaryclient = new org.hbase.async.HBaseClient(ClientConfig);
+            } catch (Exception e) {
+                LOGGER.warn("HBaseClient Connection fail in prepare");
+                LOGGER.error("Exception: " + stackTrace(e));
+            }
+
+        }        
+        return secindaryclient;
+    }
+
+    /**
+     * @param TSDBconfig
+     * @param ClientConfig
+     * @return the secindarytsdb
+     */
+    public static TSDB getSecindarytsdb(Config TSDBconfig, org.hbase.async.Config ClientConfig) {
+        while (secindarytsdb == null) {
+            try {
+                secindaryclient = getSecindaryclient(ClientConfig);
+                secindarytsdb = new TSDB(
+                        client,
+                        TSDBconfig);
+            } catch (Exception e) {
+                LOGGER.warn("OpenTSDB Connection fail in prepare");
+                LOGGER.error("Exception: " + stackTrace(e));
+            }
+
+        }               
+        return secindarytsdb;
     }
 
 }
