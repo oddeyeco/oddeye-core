@@ -265,6 +265,11 @@ public class MetriccheckRule implements Serializable {
     public byte[] getQualifier() {
         return qualifier;
     }
+    
+    public Calendar getTime() {        
+        return QualifierToCalendar(qualifier);
+    }
+    
 
     /**
      * @return the isValidRule
