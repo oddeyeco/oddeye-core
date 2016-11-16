@@ -63,6 +63,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
+    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
     private static final Gson gson = new Gson();
     private final static String[] Aggregator = {"max", "avg", "max", "min"};
     private final static String[] RulesDownsamples = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
@@ -175,7 +176,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             nameTSDBUID = tsdb.assignUid("metric", name);
         }
         final Map<String, String> tM2 = Collections.unmodifiableMap(metric.getTSDBTags());
-        
+
         for (Map.Entry<String, String> tag : tM2.entrySet()) {
             tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
@@ -438,6 +439,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     RuleItem.update("min", stats.getValue().getMin());
                     RuleItem.update("max", stats.getValue().getMax());
                     RuleItem.setHasNotData(false);
+                    RulesCalced.put(s_time_key, RuleItem);
                     RulesCache.put(s_time_key, RuleItem);
 //                    double aa = stats.getValue().getStandardDeviation();
                 }
@@ -456,6 +458,14 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public ConcurrentMap<String, MetriccheckRule> getRulesMap() {
         return RulesCache.asMap();
     }
+
+    public ConcurrentMap<String, MetriccheckRule> getCalcedRulesMap() {
+        return RulesCalced.asMap();
+    }
+    
+    public void clearCalcedRulesMap() {
+        RulesCalced.cleanUp();
+    }    
 
     public MetriccheckRule getRule(final Calendar CalendarObj, final byte[] table, final HBaseClient client) throws Exception {
         final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
