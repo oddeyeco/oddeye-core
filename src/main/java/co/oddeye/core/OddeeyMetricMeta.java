@@ -59,19 +59,21 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
+    private long lasttime;
+
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
-    private static final Gson gson = new Gson();
-    private final static String[] Aggregator = {"max", "avg", "max", "min"};
-    private final static String[] RulesDownsamples = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
+    private static final Gson GSON = new Gson();
+    private final static String[] AGGREGATOR = {"max", "avg", "max", "min"};
+    private final static String[] RULESDOWNSAMPLES = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
     private Map<String, String> Tagmap;
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
-        Map<String, Object> map = gson.fromJson(json, tags.getClass());
+        Map<String, Object> map = GSON.fromJson(json, tags.getClass());
         map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
             String key = entry.getKey();
             Object value = entry.getValue();
@@ -122,6 +124,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
             i = i + 6;
         }
+        row.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
+            lasttime = ByteBuffer.wrap(cell.value()).getLong();
+        });
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
             throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
@@ -207,10 +212,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         TagVFilter.mapToFilters(querytags, filters, true);
         int index;
         index = 0;
-        for (String dsrule : RulesDownsamples) {
+        for (String dsrule : RULESDOWNSAMPLES) {
             final TSSubQuery sub_query = new TSSubQuery();
             sub_query.setMetric(name);
-            sub_query.setAggregator(Aggregator[index]);
+            sub_query.setAggregator(AGGREGATOR[index]);
             sub_query.setFilters(filters);
             sub_query.setDownsample(dsrule);
 //            sub_query.setIndex(0);
@@ -276,10 +281,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         TagVFilter.mapToFilters(querytags, filters, true);
         int index;
         index = 0;
-        for (String dsrule : RulesDownsamples) {
+        for (String dsrule : RULESDOWNSAMPLES) {
             final TSSubQuery sub_query = new TSSubQuery();
             sub_query.setMetric(name);
-            sub_query.setAggregator(Aggregator[index]);
+            sub_query.setAggregator(AGGREGATOR[index]);
             sub_query.setFilters(filters);
             sub_query.setDownsample(dsrule);
 //            sub_query.setIndex(0);
@@ -462,10 +467,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public ConcurrentMap<String, MetriccheckRule> getCalcedRulesMap() {
         return RulesCalced.asMap();
     }
-    
+
     public void clearCalcedRulesMap() {
         RulesCalced.cleanUp();
-    }    
+    }
 
     public MetriccheckRule getRule(final Calendar CalendarObj, final byte[] table, final HBaseClient client) throws Exception {
         final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
@@ -650,6 +655,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         int result = name.compareTo(o.getName());
         return result;
 
+    }
+
+    /**
+     * @return the lasttime
+     */
+    public long getLasttime() {
+        return lasttime;
     }
 
 }
