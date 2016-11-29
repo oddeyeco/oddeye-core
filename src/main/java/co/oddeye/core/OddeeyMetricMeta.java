@@ -11,6 +11,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -40,6 +47,7 @@ import net.opentsdb.uid.UniqueId;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hbase.async.BinaryComparator;
 import org.hbase.async.CompareFilter;
 import org.hbase.async.FilterList;
@@ -71,6 +79,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final static String[] RULESDOWNSAMPLES = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
     private Map<String, String> Tagmap;
+    private SimpleRegression regression = new SimpleRegression();
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = GSON.fromJson(json, tags.getClass());
@@ -664,4 +673,90 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return lasttime;
     }
 
+    /**
+     * @return the regression
+     */
+    public SimpleRegression getRegression() {
+        return regression;
+    }
+    
+    public void setRegression(SimpleRegression reg) {
+        regression = reg;
+    }    
+
+    /**
+     * @return the regression
+     * @throws java.io.IOException
+     */
+    public byte[] getSerializedRegression() throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutput out;
+        byte[] Bytes;
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(regression);
+            out.flush();
+            Bytes = bos.toByteArray();
+            return Bytes;
+        } finally {
+            try {
+                bos.close();
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+    }
+
+    
+    /**
+     * @param Bytes
+     * @throws java.io.IOException
+     * @throws java.lang.ClassNotFoundException
+     */    
+    public void setSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
+        if (Bytes.length > 0) {
+            ByteArrayInputStream bis = new ByteArrayInputStream(Bytes);
+            ObjectInput in = null;
+            try {
+                in = new ObjectInputStream(bis);
+                regression = (SimpleRegression) in.readObject();
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException ex) {
+                    // ignore close exception
+                }
+            }
+        }
+    }
+    
+    /**
+     * @param Bytes
+     * @return  regression
+     * @throws java.io.IOException
+     * @throws java.lang.ClassNotFoundException
+     */        
+    public SimpleRegression appendSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
+        if (Bytes.length > 0) {
+            final SimpleRegression tmpregretion ;
+            final ByteArrayInputStream bis = new ByteArrayInputStream(Bytes);
+            ObjectInput in = null;
+            try {
+                in = new ObjectInputStream(bis);
+                tmpregretion = (SimpleRegression) in.readObject();
+                regression.append(tmpregretion);                
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException ex) {
+                    // ignore close exception
+                }
+            }
+        }
+        return regression;
+    }    
 }
