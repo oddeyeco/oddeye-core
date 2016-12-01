@@ -6,6 +6,7 @@
 package co.oddeye.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -44,14 +45,22 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "Regression".getBytes()};
+            scanner.setQualifiers(Qualifiers);
 
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
                     try {
-                        OddeeyMetricMeta add = add(new OddeeyMetricMeta(row, tsdb, false));
+                        OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
+                        for (KeyValue Regression : row) {
+                            if (Arrays.equals(Regression.qualifier(), "Regression".getBytes())) {
+                                metric.setSerializedRegression(Regression.value());
+                            }
+                        }
+                        OddeeyMetricMeta add = add(metric);
                     } catch (InvalidKeyException e) {
-                        LOGGER.warn("InvalidKeyException " + row +" Is deleted");
+                        LOGGER.warn("InvalidKeyException " + row + " Is deleted");
                         final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
                         client.delete(deleterequest).joinUninterruptibly();
                     } catch (Exception e) {
