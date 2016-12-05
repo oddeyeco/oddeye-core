@@ -111,7 +111,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
                 if ((Math.abs(e.getValue()) >= this.get(level).get(ALERT_PARAM_VALUE))
                 &&(Math.abs(e.getPersent_weight()) >= this.get(level).get(ALERT_PARAM_PECENT))
                 &&(Math.abs(e.getWeight()) >= this.get(level).get(ALERT_PARAM_WEIGTH))
-                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
+//                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
                 &&(Math.abs(e.getPersent_predict()) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))
                     ){
                 return level;
