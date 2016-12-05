@@ -80,6 +80,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //    private Map<String, Object> Metricmap = new HashMap<>();
     private Map<String, String> Tagmap;
     private SimpleRegression regression = new SimpleRegression();
+    private ArrayList<Integer> LevelList = new ArrayList();
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = GSON.fromJson(json, tags.getClass());
@@ -759,4 +760,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
         return regression;
     }    
+
+    /**
+     * @return the LevelList
+     */
+    public ArrayList<Integer> getLevelList() {
+        return LevelList;
+    }
 }

@@ -120,8 +120,26 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         return ALERT_LEVEL_ALL;
     }  
     
+    
     public String getName(Integer idx) {
         return ALERT_LEVELS[idx];
+    }
+
+    public Integer getErrorLevel(int weight, double weight_per, Double value, double predict_value_per) {
+        Integer[] Levels = ALERT_LEVELS_INDEX;
+        Arrays.sort(Levels, Collections.reverseOrder());
+
+        for (Integer level : Levels) {
+                if ((Math.abs(value) >= this.get(level).get(ALERT_PARAM_VALUE))
+                &&(Math.abs(weight_per) >= this.get(level).get(ALERT_PARAM_PECENT))
+                &&(Math.abs(weight) >= this.get(level).get(ALERT_PARAM_WEIGTH))
+//                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
+                &&(Math.abs(predict_value_per) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))
+                    ){
+                return level;
+            }
+        }
+        return ALERT_LEVEL_ALL;
     }
 
 }
