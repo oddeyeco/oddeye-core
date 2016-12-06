@@ -15,6 +15,7 @@ import java.util.Map;
  *
  * @author vahan
  */
+
 public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
     public final static Integer ALERT_LEVEL_ALL = 0;
@@ -121,7 +122,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
     }  
     
     
-    public String getName(Integer idx) {
+    public static String getName(Integer idx) {
         return ALERT_LEVELS[idx];
     }
 
