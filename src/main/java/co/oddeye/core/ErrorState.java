@@ -6,18 +6,22 @@
 package co.oddeye.core;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author vahan
  */
-public class ErrorState implements Serializable{
+public class ErrorState implements Serializable {
 
     private int level = -1;
     private int state;
     private long time;
     private long timestart;
     private long timeend;
+    private final Map<Integer, Long> starttimes = new HashMap<>();
+    private final Map<Integer, Long> endtimes = new HashMap<>();
 
     /**
      * @return the level
@@ -54,39 +58,49 @@ public class ErrorState implements Serializable{
         return timeend;
     }
 
-    /**
-     * @param timeend the timeend to set
-     */
-    public void setTimeend(long timeend) {
-        this.timeend = timeend;
-    }
-
     @Override
     public String toString() {
         if (level > -1) {
             return AlertLevel.getName(level) + state;
         }
-        return "NaN"+ state;
+        return "NaN" + state;
     }
 
     /**
      * @param level the level to set
+     * @param timestamp
      */
-    public void setLevel(int level) {
-        if (this.level == -1) {
-            state = 0;//Start
-        } else if (this.level == level) {
+    public void setLevel(int level, long timestamp) {
+        if (this.level == level) {
             state = 1;//Cont
+        } else if (this.level == -1) {
+            state = 0;//Start
+            starttimes.put(level, timestamp);
         } else if (this.level > level) {
             state = 2;//Dowun
+            endtimes.put(this.level, timestamp);
         } else if (this.level < level) {
             state = 3;//Up
-        }
-        if (level == -1)
-        {
+            starttimes.put(level, timestamp);
+        } else if (level == -1) {
             state = -1;//End error
+            endtimes.put(this.level, timestamp);
         }
         this.level = level;
+    }
+
+    /**
+     * @return the starttimes
+     */
+    public Map<Integer, Long> getStarttimes() {
+        return starttimes;
+    }
+
+    /**
+     * @return the endtimes
+     */
+    public Map<Integer, Long> getEndtimes() {
+        return endtimes;
     }
 
 }
