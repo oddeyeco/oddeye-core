@@ -10,12 +10,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /**
  *
  * @author vahan
  */
-
 public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
     public final static Integer ALERT_LEVEL_ALL = 0;
@@ -109,21 +109,24 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         Arrays.sort(Levels, Collections.reverseOrder());
 
         for (Integer level : Levels) {
-                if ((Math.abs(e.getValue()) >= this.get(level).get(ALERT_PARAM_VALUE))
-                &&(Math.abs(e.getPersent_weight()) >= this.get(level).get(ALERT_PARAM_PECENT))
-                &&(Math.abs(e.getWeight()) >= this.get(level).get(ALERT_PARAM_WEIGTH))
-//                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
-                &&(Math.abs(e.getPersent_predict()) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))
-                    ){
+            if ((Math.abs(e.getValue()) >= this.get(level).get(ALERT_PARAM_VALUE))
+                    && (Math.abs(e.getPersent_weight()) >= this.get(level).get(ALERT_PARAM_PECENT))
+                    && (Math.abs(e.getWeight()) >= this.get(level).get(ALERT_PARAM_WEIGTH))
+                    //                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
+                    && (Math.abs(e.getPersent_predict()) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))) {
                 return level;
             }
         }
         return ALERT_LEVEL_ALL;
-    }  
-    
-    
+    }
+
     public static String getName(Integer idx) {
-        return ALERT_LEVELS[idx];
+
+        boolean contains = Arrays.asList(ALERT_LEVELS_INDEX).contains(idx);
+        if (contains) {
+            return ALERT_LEVELS[idx];
+        }
+        return "NaN";
     }
 
     public Integer getErrorLevel(int weight, double weight_per, Double value, double predict_value_per) {
@@ -131,12 +134,11 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         Arrays.sort(Levels, Collections.reverseOrder());
 
         for (Integer level : Levels) {
-                if ((Math.abs(value) >= this.get(level).get(ALERT_PARAM_VALUE))
-                &&(Math.abs(weight_per) >= this.get(level).get(ALERT_PARAM_PECENT))
-                &&(Math.abs(weight) >= this.get(level).get(ALERT_PARAM_WEIGTH))
-//                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
-                &&(Math.abs(predict_value_per) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))
-                    ){
+            if ((Math.abs(value) >= this.get(level).get(ALERT_PARAM_VALUE))
+                    && (Math.abs(weight_per) >= this.get(level).get(ALERT_PARAM_PECENT))
+                    && (Math.abs(weight) >= this.get(level).get(ALERT_PARAM_WEIGTH))
+                    //                &&(Math.abs(e.getRecurrenceTmp())>= this.get(level).get(ALERT_PARAM_RECCOUNT))
+                    && (Math.abs(predict_value_per) >= this.get(level).get(ALERT_PARAM_PREDICTPERSENT))) {
                 return level;
             }
         }
