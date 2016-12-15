@@ -94,7 +94,7 @@ public class globalFunctions {
             try {
                 secindaryclient = getSecindaryclient(ClientConfig);
                 secindarytsdb = new TSDB(
-                        client,
+                        secindaryclient,
                         TSDBconfig);
             } catch (Exception e) {
                 LOGGER.warn("OpenTSDB Connection fail in prepare");
