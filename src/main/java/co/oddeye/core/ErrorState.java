@@ -5,6 +5,10 @@
  */
 package co.oddeye.core;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +24,25 @@ public class ErrorState implements Serializable {
     private long time;
     private long timestart;
     private long timeend;
-    private final Map<Integer, Long> starttimes = new HashMap<>();
-    private final Map<Integer, Long> endtimes = new HashMap<>();
+    private final Map<Integer, Long> starttimes;
+    private final Map<Integer, Long> endtimes;
+    
+
+    public ErrorState() {
+        super();
+        starttimes = new HashMap<>();
+        endtimes = new HashMap<>();
+    }    
+    
+    public ErrorState(JsonObject ErrorData) {
+        super();
+        level = ErrorData.get("level").getAsInt();
+        state = ErrorData.get("action").getAsInt();
+        time = ErrorData.get("time").getAsLong();
+        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>(){}.getType();
+        starttimes = globalFunctions.getGson().fromJson(ErrorData.get("starttimes"),type);
+        endtimes = globalFunctions.getGson().fromJson(ErrorData.get("endtimes"),type);
+    }
 
     /**
      * @return the level

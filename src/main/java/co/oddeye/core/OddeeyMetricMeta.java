@@ -598,6 +598,19 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return key;
     }
 
+    public byte[] getUUIDKey() {
+        byte[] key;
+        key = tags.get("UUID").getKeyTSDBUID() ;
+        key = ArrayUtils.addAll(key, nameTSDBUID);
+        for (OddeyeTag tag : tags.values()) {
+            if (!tag.getKey().equals("UUID")) {
+                key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
+                key = ArrayUtils.addAll(key, tag.getValueTSDBUID());
+            }
+        }
+        return key;
+    }
+
     /**
      * @return the tags
      */
@@ -681,10 +694,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public SimpleRegression getRegression() {
         return regression;
     }
-    
+
     public void setRegression(SimpleRegression reg) {
         regression = reg;
-    }    
+    }
 
     /**
      * @return the regression
@@ -709,12 +722,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
-    
     /**
      * @param Bytes
      * @throws java.io.IOException
      * @throws java.lang.ClassNotFoundException
-     */    
+     */
     public void setSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
         if (Bytes.length > 0) {
             ByteArrayInputStream bis = new ByteArrayInputStream(Bytes);
@@ -733,22 +745,22 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
     }
-    
+
     /**
      * @param Bytes
-     * @return  regression
+     * @return regression
      * @throws java.io.IOException
      * @throws java.lang.ClassNotFoundException
-     */        
+     */
     public SimpleRegression appendSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
         if (Bytes.length > 0) {
-            final SimpleRegression tmpregretion ;
+            final SimpleRegression tmpregretion;
             final ByteArrayInputStream bis = new ByteArrayInputStream(Bytes);
             ObjectInput in = null;
             try {
                 in = new ObjectInputStream(bis);
                 tmpregretion = (SimpleRegression) in.readObject();
-                regression.append(tmpregretion);                
+                regression.append(tmpregretion);
             } finally {
                 try {
                     if (in != null) {
@@ -760,7 +772,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         return regression;
-    }    
+    }
 
     /**
      * @return the LevelList
@@ -774,5 +786,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public ErrorState getErrorState() {
         return ErrorState;
+    }
+
+    /**
+     * @param ErrorState the ErrorState to set
+     */
+    public void setErrorState(ErrorState ErrorState) {
+        this.ErrorState = ErrorState;
     }
 }

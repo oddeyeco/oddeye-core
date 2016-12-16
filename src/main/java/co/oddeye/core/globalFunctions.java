@@ -5,8 +5,11 @@
  */
 package co.oddeye.core;
 
+import com.google.gson.Gson;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.Calendar;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.utils.Config;
 import org.hbase.async.HBaseClient;
@@ -24,7 +27,9 @@ public class globalFunctions {
     private static TSDB tsdb = null;
 
     private static HBaseClient secindaryclient = null;
-    private static TSDB secindarytsdb = null;    
+    private static TSDB secindarytsdb = null; 
+    private static final Gson gson = new Gson();
+    private static final Calendar calendar = Calendar.getInstance();
     
     static public String stackTrace(Exception cause) {
         if (cause == null) {
@@ -105,4 +110,27 @@ public class globalFunctions {
         return secindarytsdb;
     }
 
+    /**
+     * @return the gson
+     */
+    public static Gson getGson() {
+        return gson;
+    }
+
+    public static int getDayStamp(Long timestamp) {
+        calendar.setTimeInMillis(timestamp);        
+        return calendar.get(Calendar.DATE);
+    }    
+    public static int getNoDayStamp(Long timestamp) {
+        return (int)(timestamp - getDayStamp(timestamp));
+    }        
+    
+    public static byte[] getDayKey(Long timestamp) {        
+        calendar.setTimeInMillis(timestamp);
+        return ByteBuffer.allocate(4).putShort((short)calendar.get(Calendar.YEAR)).putShort((short)calendar.get(Calendar.DAY_OF_YEAR)).array();
+    }    
+    public static byte[] getNoDayKey(Long timestamp) {
+        calendar.setTimeInMillis(timestamp);
+        return ByteBuffer.allocate(3).put((byte)calendar.get(Calendar.HOUR_OF_DAY)).put((byte)calendar.get(Calendar.MINUTE)).put((byte)calendar.get(Calendar.SECOND)).array();
+    }    
 }
