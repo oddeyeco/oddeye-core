@@ -128,6 +128,22 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         }
         return "NaN";
     }
+    
+    public static Integer getPyName(String Name) {
+
+        
+        if (Name.equals("OK")) {
+            return -1;
+        }
+        if (Name.equals("WARNING")) {
+            return ALERT_LEVEL_ELEVATED;
+        }
+        if (Name.equals("ERROR")) {
+            return ALERT_LEVEL_SEVERE;
+        }        
+        return -1;
+    }    
+    
 
     public Integer getErrorLevel(int weight, double weight_per, Double value, double predict_value_per) {
         Integer[] Levels = ALERT_LEVELS_INDEX;
