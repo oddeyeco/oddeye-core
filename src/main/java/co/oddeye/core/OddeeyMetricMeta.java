@@ -7,7 +7,6 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
@@ -73,18 +72,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
-    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
-    private static final Gson GSON = new Gson();
+    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();    
     private final static String[] AGGREGATOR = {"max", "avg", "max", "min"};
     private final static String[] RULESDOWNSAMPLES = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
-    private Map<String, String> Tagmap;
+//    private Map<String, String> Tagmap;
     private SimpleRegression regression = new SimpleRegression();
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
-        Map<String, Object> map = GSON.fromJson(json, tags.getClass());
+        Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
         map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
             String key = entry.getKey();
             Object value = entry.getValue();
@@ -590,8 +588,28 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public byte[] getKey() {
         byte[] key;
+        if (nameTSDBUID == null) {
+            LOGGER.warn("nameTSDBUID is null");
+            return null;
+        }
+        if (tags == null) {
+            LOGGER.warn("tags is null");
+            return null;
+        }
         key = nameTSDBUID;
         for (OddeyeTag tag : tags.values()) {
+            if (tag == null) {
+                LOGGER.warn("tag is null");
+                return null;
+            }
+            if (tag.getKeyTSDBUID() == null) {
+                LOGGER.warn("tag.getKeyTSDBUID() is null");
+                return null;
+            }            
+            if (tag.getValueTSDBUID() == null) {
+                LOGGER.warn("tag.getValueTSDBUID() is null");
+                return null;
+            }            
             key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
             key = ArrayUtils.addAll(key, tag.getValueTSDBUID());
         }
@@ -600,7 +618,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public byte[] getUUIDKey() {
         byte[] key;
-        key = tags.get("UUID").getValueTSDBUID() ;
+        key = tags.get("UUID").getValueTSDBUID();
         key = ArrayUtils.addAll(key, nameTSDBUID);
         for (OddeyeTag tag : tags.values()) {
             if (!tag.getKey().equals("UUID")) {
@@ -612,13 +630,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public static byte[] UUIDKey2Key(byte[] uuidkey, TSDB tsdb) {
-        byte[] key = Arrays.copyOfRange(uuidkey, 7,uuidkey.length);
-        byte[] TSDBUUID = Arrays.copyOfRange(uuidkey, 4, 7);        
+        byte[] key = Arrays.copyOfRange(uuidkey, 7, uuidkey.length);
+        byte[] TSDBUUID = Arrays.copyOfRange(uuidkey, 4, 7);
         key = ArrayUtils.addAll(key, tsdb.getUID(UniqueId.UniqueIdType.TAGK, "UUID"));
         key = ArrayUtils.addAll(key, TSDBUUID);
         return key;
-    }    
-    
+    }
+
     /**
      * @return the tags
      */
@@ -678,7 +696,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
 //        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
 //        hash = 53 * hash + Arrays.hashCode(this.getKey());
-        int hash = Objects.hashCode(Hex.encodeHexString(this.getKey()));
+        byte[] key = this.getKey();
+        if (key == null)
+        {
+            LOGGER.warn("this.getKey() is null");
+            return 0;            
+        }
+        int hash = Objects.hashCode(Hex.encodeHexString(key));
         return hash;
     }
 

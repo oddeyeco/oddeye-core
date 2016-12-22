@@ -113,7 +113,13 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 //        return result;
 //    }
     public OddeeyMetricMeta set(OddeeyMetricMeta e) {
-        return this.put(e.hashCode(), e);
+        int code = e.hashCode();
+        if (code == 0)
+        {
+            LOGGER.warn("Get hash Error for "+e.getName());
+            return null;             
+        }
+        return this.put(code, e);
     }
 
     /**

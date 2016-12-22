@@ -22,13 +22,12 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> {
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
     private String name;
-    private final Map<String, String> tags = new TreeMap<>();
-    private static final Gson GSON = new Gson();
+    private final Map<String, String> tags = new TreeMap<>();    
     private Double value;
     private Long timestamp;
 
     public OddeeyMetric(JsonElement json) {
-        Map<String, Object> map = GSON.fromJson(json, tags.getClass());
+        Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
         map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
             String key = entry.getKey();
             Object ObValue = entry.getValue();
