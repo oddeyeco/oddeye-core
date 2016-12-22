@@ -24,24 +24,28 @@ public class ErrorState implements Serializable {
     private long time;
     private long timestart;
     private long timeend;
+    private String message;
     private final Map<Integer, Long> starttimes;
     private final Map<Integer, Long> endtimes;
-    
 
     public ErrorState() {
         super();
         starttimes = new HashMap<>();
         endtimes = new HashMap<>();
-    }    
-    
+    }
+
     public ErrorState(JsonObject ErrorData) {
         super();
         level = ErrorData.get("level").getAsInt();
         state = ErrorData.get("action").getAsInt();
         time = ErrorData.get("time").getAsLong();
-        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>(){}.getType();
-        starttimes = globalFunctions.getGson().fromJson(ErrorData.get("starttimes"),type);
-        endtimes = globalFunctions.getGson().fromJson(ErrorData.get("endtimes"),type);
+        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>() {
+        }.getType();
+        starttimes = globalFunctions.getGson().fromJson(ErrorData.get("starttimes"), type);
+        endtimes = globalFunctions.getGson().fromJson(ErrorData.get("endtimes"), type);
+        if (ErrorData.get("message")!=null) {
+            message = ErrorData.get("message").getAsString();
+        }
     }
 
     /**
@@ -122,6 +126,13 @@ public class ErrorState implements Serializable {
      */
     public Map<Integer, Long> getEndtimes() {
         return endtimes;
+    }
+
+    /**
+     * @return the message
+     */
+    public String getMessage() {
+        return message;
     }
 
 }
