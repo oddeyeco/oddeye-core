@@ -577,6 +577,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     /**
+     * @return the name
+     */
+    public String getDisplayName() {
+        return name.replaceAll("_", " ");
+    }    
+    
+    /**
      * @return the nameTSDBUID
      */
     public byte[] getNameTSDBUID() {
@@ -806,6 +813,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return regression;
     }
 
+    
     /**
      * @return the LevelList
      */
