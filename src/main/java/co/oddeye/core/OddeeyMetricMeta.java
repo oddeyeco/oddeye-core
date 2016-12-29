@@ -630,8 +630,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public static byte[] UUIDKey2Key(byte[] uuidkey, TSDB tsdb) {
-        byte[] key = Arrays.copyOfRange(uuidkey, 7, uuidkey.length);
-        byte[] TSDBUUID = Arrays.copyOfRange(uuidkey, 4, 7);
+        byte[] key = Arrays.copyOfRange(uuidkey, 3, uuidkey.length);
+        byte[] TSDBUUID = Arrays.copyOfRange(uuidkey, 0, 3);
         key = ArrayUtils.addAll(key, tsdb.getUID(UniqueId.UniqueIdType.TAGK, "UUID"));
         key = ArrayUtils.addAll(key, TSDBUUID);
         return key;
