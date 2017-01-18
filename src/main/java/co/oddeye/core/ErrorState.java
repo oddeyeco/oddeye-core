@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class ErrorState implements Serializable {
 
-    private int level = -1;
+    private int level = -255;
     private int state;
     private long time;
     private long timestart;
@@ -107,7 +107,9 @@ public class ErrorState implements Serializable {
         } else if (this.level < level) {
             state = 3;//Up
             starttimes.put(level, timestamp);
-        } else if (level == -1) {
+        }  
+        
+        if ((level == -1)&&(this.level!=-1)) {
             state = -1;//End error
             endtimes.put(this.level, timestamp);
         }
