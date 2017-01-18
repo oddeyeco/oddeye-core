@@ -114,6 +114,7 @@ public class ErrorState implements Serializable {
             endtimes.put(this.level, timestamp);
         }
         this.level = level;
+        time = timestamp;
     }
 
     /**
