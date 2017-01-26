@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta> {
+public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta>, Cloneable {
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
@@ -72,7 +72,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
-    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();    
+    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
     private final static String[] AGGREGATOR = {"max", "avg", "max", "min"};
     private final static String[] RULESDOWNSAMPLES = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
 //    private Map<String, Object> Metricmap = new HashMap<>();
@@ -80,6 +80,15 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private SimpleRegression regression = new SimpleRegression();
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
+
+    @Override
+    public OddeeyMetricMeta clone() throws CloneNotSupportedException {
+        try {
+            return (OddeeyMetricMeta) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
@@ -309,6 +318,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
         for (int nq = 0; nq < nqueries; nq++) {
             deferreds.add(tsdbqueries[nq].runAsync());
+
         }
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
@@ -406,6 +416,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
         for (int nq = 0; nq < nqueries; nq++) {
             deferreds.add(tsdbqueries[nq].runAsync());
+
         }
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
@@ -581,8 +592,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public String getDisplayName() {
         return name.replaceAll("_", " ");
-    }    
-    
+    }
+
     /**
      * @return the nameTSDBUID
      */
@@ -612,11 +623,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             if (tag.getKeyTSDBUID() == null) {
                 LOGGER.warn("tag.getKeyTSDBUID() is null");
                 return null;
-            }            
+            }
             if (tag.getValueTSDBUID() == null) {
                 LOGGER.warn("tag.getValueTSDBUID() is null");
                 return null;
-            }            
+            }
             key = ArrayUtils.addAll(key, tag.getKeyTSDBUID());
             key = ArrayUtils.addAll(key, tag.getValueTSDBUID());
         }
@@ -704,10 +715,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
 //        hash = 53 * hash + Arrays.hashCode(this.getKey());
         byte[] key = this.getKey();
-        if (key == null)
-        {
+        if (key == null) {
             LOGGER.warn("this.getKey() is null");
-            return 0;            
+            return 0;
         }
         int hash = Objects.hashCode(Hex.encodeHexString(key));
         return hash;
@@ -813,7 +823,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return regression;
     }
 
-    
     /**
      * @return the LevelList
      */

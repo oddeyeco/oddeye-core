@@ -18,13 +18,22 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> {
+public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cloneable{
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
     private String name;
-    private final Map<String, String> tags = new TreeMap<>();    
+    private final Map<String, String> tags = new TreeMap<>();
     private Double value;
     private Long timestamp;
+
+    @Override
+    public OddeeyMetric clone() throws CloneNotSupportedException {
+        try {
+            return (OddeeyMetric) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }
 
     public OddeeyMetric(JsonElement json) {
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
@@ -44,21 +53,21 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> {
                     throw new NullPointerException("Has not metriq name:" + json.toString());
                 }
             }
-            
+
             if (key.equals("value")) {
                 value = Double.valueOf(String.valueOf(ObValue));
                 if (value == null) {
                     throw new NullPointerException("Has not metriq value:" + json.toString());
-                }                
-            }            
+                }
+            }
             if (key.equals("timestamp")) {
-                timestamp =(long) (Double.valueOf(String.valueOf(ObValue)) * 1000);
+                timestamp = (long) (Double.valueOf(String.valueOf(ObValue)) * 1000);
 //                Metric.getAsJsonObject().get("timestamp").getAsLong() * 1000
                 if (timestamp == null) {
                     throw new NullPointerException("Has not metriq value:" + json.toString());
                 }
-                
-            }            
+
+            }
         });
     }
 
@@ -97,10 +106,9 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> {
     }
 
     public Map<String, String> getTSDBTags() {
-        final Map<String, String> litetags = new HashMap<>(tags) ;
+        final Map<String, String> litetags = new HashMap<>(tags);
         litetags.remove("alert_level");
         return litetags;
     }
-
 
 }
