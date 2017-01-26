@@ -12,9 +12,14 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
+import net.opentsdb.query.QueryUtil;
+import net.opentsdb.uid.UniqueId;
 import org.hbase.async.DeleteRequest;
+import org.hbase.async.FilterList;
 import org.hbase.async.HBaseClient;
+import org.hbase.async.KeyRegexpFilter;
 import org.hbase.async.KeyValue;
+import org.hbase.async.ScanFilter;
 import org.hbase.async.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +39,52 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
         super();
     }
 
+    public OddeeyMetricMetaList(TSDB tsdb, byte[] table, String metricname) {
+        super();
+
+        try {
+            final HBaseClient client = tsdb.getClient();
+
+            Scanner scanner = client.newScanner(table);
+            scanner.setServerBlockCache(false);
+            scanner.setMaxNumRows(1000);
+            scanner.setFamily("d".getBytes());
+//            scanner.setQualifier("n".getBytes());
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes()};
+            scanner.setQualifiers(Qualifiers);
+
+            byte[] NameUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, metricname);
+            StringBuilder buffer = new StringBuilder();
+            buffer.append("(?s)(");
+            buffer.append("\\Q");
+            QueryUtil.addId(buffer, NameUID, true);
+            buffer.append(")(.*)$");
+            final ArrayList<ScanFilter> filters = new ArrayList<>();
+            filters.add(new KeyRegexpFilter(buffer.toString()));
+            scanner.setFilter(new FilterList(filters));
+            
+            ArrayList<ArrayList<KeyValue>> rows;
+            while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
+                for (final ArrayList<KeyValue> row : rows) {
+                    try {
+                        OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
+                        OddeeyMetricMeta add = add(metric);
+                    } catch (InvalidKeyException e) {
+                        LOGGER.warn("InvalidKeyException " + row + " Is deleted");
+                        final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
+                        client.delete(deleterequest).joinUninterruptibly();
+                    } catch (Exception e) {
+                        LOGGER.warn(globalFunctions.stackTrace(e));
+                        LOGGER.warn("Can not add row to metrics " + row);
+                    }
+
+                }
+            }
+        } catch (Exception ex) {
+            java.util.logging.Logger.getLogger(OddeeyMetricMetaList.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table) {
         super();
 
@@ -45,7 +96,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
 
             ArrayList<ArrayList<KeyValue>> rows;
@@ -114,10 +165,9 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
 //    }
     public OddeeyMetricMeta set(OddeeyMetricMeta e) {
         int code = e.hashCode();
-        if (code == 0)
-        {
-            LOGGER.warn("Get hash Error for "+e.getName());
-            return null;             
+        if (code == 0) {
+            LOGGER.warn("Get hash Error for " + e.getName());
+            return null;
         }
         return this.put(code, e);
     }
