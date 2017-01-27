@@ -75,9 +75,9 @@ public class OddeyeTag implements Serializable{
 
     OddeyeTag(byte[] tgkey, byte[] tgval, TSDB tsdb) throws Exception {
         keyTSDBUID = tgkey;
-        valueTSDBUID = tgval;
-        key = tsdb.getUidName(UniqueId.UniqueIdType.TAGK, keyTSDBUID).join();
-        value = tsdb.getUidName(UniqueId.UniqueIdType.TAGV, valueTSDBUID).join();
+        valueTSDBUID = tgval;        
+        key = tsdb.getUidName(UniqueId.UniqueIdType.TAGK, keyTSDBUID).joinUninterruptibly();
+        value = tsdb.getUidName(UniqueId.UniqueIdType.TAGV, valueTSDBUID).joinUninterruptibly();
     }
 
     /**

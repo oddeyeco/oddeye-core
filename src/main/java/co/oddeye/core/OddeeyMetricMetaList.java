@@ -62,7 +62,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             final ArrayList<ScanFilter> filters = new ArrayList<>();
             filters.add(new KeyRegexpFilter(buffer.toString()));
             scanner.setFilter(new FilterList(filters));
-            
+
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
@@ -96,9 +96,8 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(),"Special".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "Special".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
-
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
