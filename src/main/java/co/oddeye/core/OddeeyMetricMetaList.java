@@ -96,11 +96,11 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(),"Special".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
 
             ArrayList<ArrayList<KeyValue>> rows;
-            while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
+            while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
                     try {
                         OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
+    private final boolean Special;
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(2, TimeUnit.HOURS).build();
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(1, TimeUnit.HOURS).build();
     private final static String[] AGGREGATOR = {"max", "avg", "max", "min"};
@@ -92,7 +94,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
-        map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
+        boolean locSpecial = Boolean.FALSE;
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             if (key.equals("tags")) {
@@ -104,6 +107,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
                     }
                 });
+            }
+            if (key.equals("specialTag")) {
+                locSpecial = Boolean.valueOf(String.valueOf(value));
             }
             if (key.equals("metric")) {
                 name = String.valueOf(value);
@@ -117,7 +123,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 }
 
             }
-        });
+        }
+        Special = locSpecial;
     }
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
@@ -142,9 +149,22 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
             i = i + 6;
         }
-        row.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
-            lasttime = ByteBuffer.wrap(cell.value()).getLong();
-        });
+//        row.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
+//            lasttime = ByteBuffer.wrap(cell.value()).getLong();
+//        });
+        boolean locSpecial = Boolean.FALSE;
+        for (KeyValue cell:row)
+        {
+            if (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))
+            {
+                lasttime = ByteBuffer.wrap(cell.value()).getLong();
+            }
+            if (Arrays.equals(cell.qualifier(), "Special".getBytes()))
+            {
+                locSpecial = cell.value()[0]==1;
+            }            
+        }
+        Special = locSpecial;
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
             throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
@@ -160,16 +180,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     RuleItem = new MetriccheckRule(kv.qualifier());
                 }
 
-                RuleItem.update(kv.value());
-                // Herdakanucjun@ karevora
-//                byte[] b_value = Arrays.copyOfRange(kv.value(), 0, 8);
-//                RuleItem.update("avg", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 8, 16);
-//                RuleItem.update("dev", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 16, 24);
-//                RuleItem.update("min", ByteBuffer.wrap(b_value).getDouble());
-//                b_value = Arrays.copyOfRange(kv.value(), 24, 32);
-//                RuleItem.update("max", ByteBuffer.wrap(b_value).getDouble());
+                RuleItem.update(kv.value());                
                 RulesCache.put(Hex.encodeHexString(kv.qualifier()), RuleItem);
 
             }
@@ -189,6 +200,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+        Special = false;
     }
 
     public OddeeyMetricMeta(OddeeyMetric metric, TSDB tsdb) throws Exception {
@@ -203,7 +215,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         for (Map.Entry<String, String> tag : tM2.entrySet()) {
             tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
-        }
+        }        
+        Special =(metric instanceof OddeeysSpecialMetric);
     }
 
     @Deprecated
@@ -842,5 +855,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public void setErrorState(ErrorState ErrorState) {
         this.ErrorState = ErrorState;
+    }
+
+    /**
+     * @return the Special
+     */
+    public boolean isSpecial() {
+        return Special;
     }
 }
