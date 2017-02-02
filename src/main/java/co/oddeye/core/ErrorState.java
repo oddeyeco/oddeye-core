@@ -6,12 +6,11 @@
 package co.oddeye.core;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
  *
@@ -27,6 +26,22 @@ public class ErrorState implements Serializable {
     private String message;
     private final Map<Integer, Long> starttimes;
     private final Map<Integer, Long> endtimes;
+    
+    public final static String ST_ALERT_STATE_START = "Start";
+    public final static String ST_ALERT_STATE_CONT = "Continue"; 
+    public final static String ST_ALERT_STATE_DW = "Down";
+    public final static String ST_ALERT_STATE_UP = "Up";    
+    public final static String ST_ALERT_STATE_END = "End";    
+    
+    public final static Integer ALERT_STATE_START = 0;
+    public final static Integer ALERT_STATE_CONT = 1;
+    public final static Integer ALERT_STATE_DW = 2;
+    public final static Integer ALERT_STATE_UP = 3;
+    public final static Integer ALERT_STATE_END = -1;
+    
+    public final static Integer[] ALERT_STATE_INDEX = new Integer[]{ALERT_STATE_START, ALERT_STATE_CONT, ALERT_STATE_DW, ALERT_STATE_UP};
+    public final static String[] ALERT_STATE = new String[]{ST_ALERT_STATE_START, ST_ALERT_STATE_CONT, ST_ALERT_STATE_DW, ST_ALERT_STATE_UP};
+
 
     public ErrorState() {
         super();
@@ -54,6 +69,10 @@ public class ErrorState implements Serializable {
     public int getLevel() {
         return level;
     }
+    
+    public String getLevelName() {
+        return AlertLevel.getName(level);
+    }    
 
     /**
      * @return the state
@@ -61,6 +80,13 @@ public class ErrorState implements Serializable {
     public int getState() {
         return state;
     }
+    public String getStateName() {
+        boolean contains = Arrays.asList(ALERT_STATE_INDEX).contains(state);
+        if (contains) {
+            return ALERT_STATE[state];
+        }
+        return "NaN";                
+    }    
 
     /**
      * @return the time
@@ -97,20 +123,20 @@ public class ErrorState implements Serializable {
      */
     public void setLevel(int level, long timestamp) {
         if (this.level == level) {
-            state = 1;//Cont
+            state = ALERT_STATE_CONT;
         } else if (this.level == -1) {
-            state = 0;//Start
+            state = ALERT_STATE_START;
             starttimes.put(level, timestamp);
         } else if (this.level > level) {
-            state = 2;//Dowun
+            state = ALERT_STATE_DW;//Dowun
             endtimes.put(this.level, timestamp);
         } else if (this.level < level) {
-            state = 3;//Up
+            state = ALERT_STATE_UP;//Up
             starttimes.put(level, timestamp);
         }  
         
         if ((level == -1)&&(this.level!=-1)) {
-            state = -1;//End error
+            state = ALERT_STATE_END;//End error
             endtimes.put(this.level, timestamp);
         }
         this.level = level;

@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -153,16 +152,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //            lasttime = ByteBuffer.wrap(cell.value()).getLong();
 //        });
         boolean locSpecial = Boolean.FALSE;
-        for (KeyValue cell:row)
-        {
-            if (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))
-            {
+        for (KeyValue cell : row) {
+            if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
-            if (Arrays.equals(cell.qualifier(), "Special".getBytes()))
-            {
-                locSpecial = cell.value()[0]==1;
-            }            
+            if (Arrays.equals(cell.qualifier(), "Special".getBytes())) {
+                locSpecial = cell.value()[0] == 1;
+            }
         }
         Special = locSpecial;
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
@@ -180,7 +176,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     RuleItem = new MetriccheckRule(kv.qualifier());
                 }
 
-                RuleItem.update(kv.value());                
+                RuleItem.update(kv.value());
                 RulesCache.put(Hex.encodeHexString(kv.qualifier()), RuleItem);
 
             }
@@ -215,173 +211,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         for (Map.Entry<String, String> tag : tM2.entrySet()) {
             tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
-        }        
-        Special =(metric instanceof OddeeysSpecialMetric);
-    }
-
-    @Deprecated
-    public void CalculateRules(long startdate, long enddate, TSDB tsdb) throws Exception {
-        final TSQuery tsquery = new TSQuery();
-
-        tsquery.setStart(Long.toString(startdate));
-        tsquery.setEnd(Long.toString(enddate));
-        final List<TagVFilter> filters = new ArrayList<>();
-        final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
-        final Map<String, String> querytags = new HashMap<>();
-        final Map<String, SeekableView> datalist = new TreeMap<>();
-        final Calendar CalendarObj = Calendar.getInstance();
-
-        double R_value;
-        String family;
-        byte[] time_key;
-        MetriccheckRule RuleItem;
-        tags.entrySet().stream().forEach((tag) -> {
-            querytags.put(tag.getKey(), tag.getValue().getValue());
-        });
-
-//        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
-        TagVFilter.mapToFilters(querytags, filters, true);
-        int index;
-        index = 0;
-        for (String dsrule : RULESDOWNSAMPLES) {
-            final TSSubQuery sub_query = new TSSubQuery();
-            sub_query.setMetric(name);
-            sub_query.setAggregator(AGGREGATOR[index]);
-            sub_query.setFilters(filters);
-            sub_query.setDownsample(dsrule);
-//            sub_query.setIndex(0);
-            sub_queries.add(sub_query);
-            index++;
         }
-
-        tsquery.setQueries(sub_queries);
-        tsquery.validateAndSetQuery();
-        Query[] tsdbqueries = tsquery.buildQueries(tsdb);
-
-        final int nqueries = tsdbqueries.length;
-        for (int nq = 0; nq < nqueries; nq++) {
-            final DataPoints[] series = tsdbqueries[nq].run();
-            for (final DataPoints datapoints : series) {
-//                try {
-//                    Tagmap = datapoints.getTags();
-//                    Tagmap.remove("alert_level");
-//                    if (!Tagmap.equals(querytags)) {
-//                        throw new Exception("Invalid tags");
-//                    }
-//                } catch (Exception e) {
-//                    throw new Exception(e);
-//                }
-                final SeekableView Datalist = datapoints.iterator();
-                while (Datalist.hasNext()) {
-                    final DataPoint Point = Datalist.next();
-                    CalendarObj.setTimeInMillis(Point.timestamp());
-                    family = sub_queries.get(datapoints.getQueryIndex()).downsamplingSpecification().getFunction().toString();
-                    time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-                    R_value = Point.doubleValue();
-                    RuleItem = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
-                    if (RuleItem == null) {
-                        RuleItem = new MetriccheckRule(time_key);
-                    }
-                    RuleItem.update(family, R_value);
-//                    System.out.println("Metric: " + name + "host: " + querytags.get("host") + ":" + family + ":" + R_value + " time:" + CalendarObj.getTime());
-
-                    RulesCache.put(Hex.encodeHexString(time_key), RuleItem);
-
-                }
-            }
-        }
-    }
-
-    @Deprecated
-    public void CalculateRulesAsync(long startdate, long enddate, TSDB tsdb) throws Exception {
-        final TSQuery tsquery = new TSQuery();
-
-        tsquery.setStart(Long.toString(startdate));
-        tsquery.setEnd(Long.toString(enddate));
-        final List<TagVFilter> filters = new ArrayList<>();
-        final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
-        final Map<String, String> querytags = new HashMap<>();
-        final Map<String, SeekableView> datalist = new TreeMap<>();
-        final Calendar CalendarObj = Calendar.getInstance();
-
-        tags.entrySet().stream().forEach((tag) -> {
-            querytags.put(tag.getKey(), tag.getValue().getValue());
-        });
-
-//        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
-        TagVFilter.mapToFilters(querytags, filters, true);
-        int index;
-        index = 0;
-        for (String dsrule : RULESDOWNSAMPLES) {
-            final TSSubQuery sub_query = new TSSubQuery();
-            sub_query.setMetric(name);
-            sub_query.setAggregator(AGGREGATOR[index]);
-            sub_query.setFilters(filters);
-            sub_query.setDownsample(dsrule);
-//            sub_query.setIndex(0);
-            sub_queries.add(sub_query);
-            index++;
-        }
-
-        tsquery.setQueries(sub_queries);
-        tsquery.validateAndSetQuery();
-        Query[] tsdbqueries = tsquery.buildQueries(tsdb);
-
-        final int nqueries = tsdbqueries.length;
-        final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
-        for (int nq = 0; nq < nqueries; nq++) {
-            deferreds.add(tsdbqueries[nq].runAsync());
-
-        }
-
-        class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
-
-            @Override
-            public Object call(final ArrayList<DataPoints[]> query_results)
-                    throws Exception {
-                double R_value;
-                String family;
-                byte[] time_key;
-                MetriccheckRule RuleItem;
-
-                for (DataPoints[] series : query_results) {
-                    for (final DataPoints datapoints : series) {
-//                        try {
-//                            Tagmap = datapoints.getTags();
-//                            Tagmap.remove("alert_level");
-//                            if (!Tagmap.equals(querytags)) {
-//                                throw new Exception("Invalid tags");
-//                            }
-//                        } catch (Exception e) {
-//                            throw new Exception(e);
-//                        }
-                        final SeekableView Datalist = datapoints.iterator();
-                        while (Datalist.hasNext()) {
-                            final DataPoint Point = Datalist.next();
-                            CalendarObj.setTimeInMillis(Point.timestamp());
-                            family = sub_queries.get(datapoints.getQueryIndex()).downsamplingSpecification().getFunction().toString();
-                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-                            R_value = Point.doubleValue();
-                            RuleItem = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
-                            if (RuleItem == null) {
-                                RuleItem = new MetriccheckRule(time_key);
-                            }
-                            RuleItem.update(family, R_value);
-                            RulesCache.put(Hex.encodeHexString(time_key), RuleItem);
-
-                        }
-                    }
-                }
-
-                return null;
-            }
-        }
-        try {
-            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB())
-                    .joinUninterruptibly();
-        } catch (Exception e) {
-            throw new RuntimeException("Shouldn't be here", e);
-        }
+        Special = (metric instanceof OddeeysSpecialMetric);
     }
 
     public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
@@ -605,6 +436,16 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public String getDisplayName() {
         return name.replaceAll("_", " ");
+    }
+
+    public String getDisplayTags(String separator) {
+        String result = "";
+        for (Map.Entry<String, OddeyeTag> tag : tags.entrySet()) {
+            if (!tag.getKey().equals("UUID")) {
+                result = result + " " + tag.getKey() + ":" + tag.getValue().getValue()+separator;
+            }
+        }
+        return result;
     }
 
     /**

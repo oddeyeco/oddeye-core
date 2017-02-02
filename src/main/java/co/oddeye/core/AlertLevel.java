@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 /**
  *
@@ -34,7 +33,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
     public final static Integer[] ALERT_LEVELS_INDEX = new Integer[]{ALERT_LEVEL_ALL, ALERT_LEVEL_LOW, ALERT_LEVEL_GUARDED, ALERT_LEVEL_ELEVATED, ALERT_LEVEL_HIGH, ALERT_LEVEL_SEVERE};
 
-    public final static String[] ALERT_LEVELS = new String[]{ST_ALERT_LEVEL_ALL, ST_ALERT_LEVEL_LOW, ST_ALERT_LEVEL_GUARDED, ST_ALERT_LEVEL_ELEVATED, ST_ALERT_LEVEL_HIGH, ST_ALERT_LEVEL_SEVERE};
+    public final static String[] ALERT_LEVELS = new String[]{ST_ALERT_LEVEL_ALL, ST_ALERT_LEVEL_LOW, ST_ALERT_LEVEL_GUARDED, ST_ALERT_LEVEL_ELEVATED, ST_ALERT_LEVEL_HIGH, ST_ALERT_LEVEL_SEVERE};       
 
     public final static String ST_ALERT_PARAM_VALUE_NAME = "Min Value";
     public final static String ST_ALERT_PARAM_PECENT_NAME = "Min Percent";
