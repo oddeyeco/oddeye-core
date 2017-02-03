@@ -149,23 +149,30 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //            lasttime = ByteBuffer.wrap(cell.value()).getLong();
 //        });
 
+        name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
+        if (name == null) {
+            throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
+        }
+
+//        if (Hex.encodeHexString(key).equals("00006600000400000400000100009900000500009c00000200009a000003000003".toUpperCase())) {
+//            System.out.println("co.oddeye.core.OddeeyMetricMeta.<init>()");
+//        }
+        
+        
         type = 1;
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
             if (Arrays.equals(cell.qualifier(), "type".getBytes())) {
-                type = ByteBuffer.wrap(cell.value()).getShort();
+                type = ByteBuffer.wrap(cell.value()).getShort();                
             }
             if (Arrays.equals(cell.qualifier(), "Regression".getBytes())) {
                 this.setSerializedRegression(cell.value());
             }
         }
 
-        name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
-        if (name == null) {
-            throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
-        }
+
 
         if (loadAllRules) {
             for (final KeyValue kv : row) {
@@ -716,5 +723,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public String getTypeName() {
         return OddeeyMetricTypes.getName(type);
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(short type) {
+        this.type = type;
     }
 }

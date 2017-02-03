@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,41 +41,43 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
         type = 1;
         reaction = 0;
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
-        map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
-            String key = entry.getKey();
-            Object ObValue = entry.getValue();
-            if (key.equals("tags")) {
-                Map<String, Object> t_value = (Map) ObValue;
-                tags.clear();
-                t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
-                    tags.put(tag.getKey(), String.valueOf(tag.getValue()));
-                });
-            }
-            if (key.equals("metric")) {
-                name = String.valueOf(ObValue);
-                if (name == null) {
-                    throw new NullPointerException("Has not metriq name:" + json.toString());
+        map.entrySet().stream().forEach(new Consumer<Map.Entry<String, Object>>() {
+            @Override
+            public void accept(Map.Entry<String, Object> entry) {
+                String key = entry.getKey();
+                Object ObValue = entry.getValue();
+                if (key.equals("tags")) {
+                    Map<String, Object> t_value = (Map) ObValue;
+                    tags.clear();
+                    t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
+                        tags.put(tag.getKey(), String.valueOf(tag.getValue()));
+                    });
                 }
-            }
-            if (key.equals("type")) {
-                type = OddeeyMetricTypes.getIndexByName(String.valueOf(ObValue));
-            }
-            if (key.equals("value")) {
-                value = Double.valueOf(String.valueOf(ObValue));
-                if (value == null) {
-                    throw new NullPointerException("Has not metriq value:" + json.toString());
+                if (key.equals("metric")) {
+                    name = String.valueOf(ObValue);
+                    if (name == null) {
+                        throw new NullPointerException("Has not metriq name:" + json.toString());
+                    }
                 }
-            }
-            if (key.equals("timestamp")) {
-                timestamp = (long) (Double.valueOf(String.valueOf(ObValue)) * 1000);
+                if (key.equals("type")) {
+                    type = OddeeyMetricTypes.getIndexByName(String.valueOf(ObValue));
+                }
+                if (key.equals("value")) {
+                    value = Double.valueOf(String.valueOf(ObValue));
+                    if (value == null) {
+                        throw new NullPointerException("Has not metriq value:" + json.toString());
+                    }
+                }
+                if (key.equals("timestamp")) {
+                    timestamp = (long) (Double.valueOf(String.valueOf(ObValue)) * 1000);
 //                Metric.getAsJsonObject().get("timestamp").getAsLong() * 1000
-                if (timestamp == null) {
-                    throw new NullPointerException("Has not metriq value:" + json.toString());
+                    if (timestamp == null) {
+                        throw new NullPointerException("Has not metriq value:" + json.toString());
+                    }
                 }
-
-            }
-            if (key.equals("reaction")) {
-                reaction = (int) (Integer.valueOf(String.valueOf(ObValue)) * 1000);
+                if (key.equals("reaction")) {
+                    reaction = Double.valueOf(String.valueOf(ObValue)).intValue();
+                }
             }
         });
     }
