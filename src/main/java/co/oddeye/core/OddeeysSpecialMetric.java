@@ -14,12 +14,12 @@ import com.google.gson.JsonElement;
 public class OddeeysSpecialMetric extends OddeeyMetric{
     
     private final String message;    
-    private final String type;
+    private final String status;
     
     public OddeeysSpecialMetric(JsonElement json) {
         super(json);
         message = json.getAsJsonObject().get("message").getAsString();
-        type = json.getAsJsonObject().get("type").getAsString();
+        status  = json.getAsJsonObject().get("status").getAsString();
         
     }
 
@@ -34,14 +34,14 @@ public class OddeeysSpecialMetric extends OddeeyMetric{
      * @return the st
      */
     public boolean isSpecialTag() {
-        return true;
+        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
     }
 
     /**
-     * @return the type
+     * @return the state
      */
-    public String getType() {
-        return type;
+    public String getStatus() {
+        return status;
     }
     
 }

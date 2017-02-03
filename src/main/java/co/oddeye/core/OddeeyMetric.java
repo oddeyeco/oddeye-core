@@ -5,7 +5,6 @@
  */
 package co.oddeye.core;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -18,13 +17,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cloneable{
-
+public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cloneable{        
+    
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
     private String name;
     private final Map<String, String> tags = new TreeMap<>();
     private Double value;
     private Long timestamp;
+    protected short type;
+    
 
     @Override
     public OddeeyMetric clone() throws CloneNotSupportedException {
@@ -36,6 +37,7 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cl
     }
 
     public OddeeyMetric(JsonElement json) {
+        type = 1;
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
         map.entrySet().stream().forEach((Map.Entry<String, Object> entry) -> {
             String key = entry.getKey();
@@ -53,7 +55,9 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cl
                     throw new NullPointerException("Has not metriq name:" + json.toString());
                 }
             }
-
+            if (key.equals("type")) {
+                type = OddeeyMetricTypes.getIndexByName(String.valueOf(ObValue)) ;                                
+            }
             if (key.equals("value")) {
                 value = Double.valueOf(String.valueOf(ObValue));
                 if (value == null) {
@@ -110,5 +114,16 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cl
         litetags.remove("alert_level");
         return litetags;
     }
+
+    /**
+     * @return the type
+     */
+    public short getType() {
+        return type;
+    }
+    
+    public String getTypeName() {
+        return OddeeyMetricTypes.getName(type);
+    }    
 
 }

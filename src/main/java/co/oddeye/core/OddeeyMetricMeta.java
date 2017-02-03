@@ -71,17 +71,14 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
-    private final boolean Special;
+//    private final boolean Special;
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(150, TimeUnit.MINUTES).build();
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(80, TimeUnit.MINUTES).build();
-    private final static String[] AGGREGATOR = {"max", "avg", "max", "min"};
-    private final static String[] RULESDOWNSAMPLES = {"1h-dev", "1h-avg", "1h-max", "1h-min"};
-//    private Map<String, Object> Metricmap = new HashMap<>();
-//    private Map<String, String> Tagmap;
     private SimpleRegression regression = new SimpleRegression();
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
-
+    private short type;
+    
     @Override
     public OddeeyMetricMeta clone() throws CloneNotSupportedException {
         try {
@@ -93,7 +90,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
-        boolean locSpecial = Boolean.FALSE;
+        
+        type = 1;
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
@@ -107,9 +105,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     }
                 });
             }
-            if (key.equals("specialTag")) {
-                locSpecial = Boolean.valueOf(String.valueOf(value));
-            }
+            if (key.equals("type")) {
+                type = OddeeyMetricTypes.getIndexByName(String.valueOf(value)) ;
+            }            
             if (key.equals("metric")) {
                 name = String.valueOf(value);
                 if (name == null) {
@@ -122,8 +120,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 }
 
             }
-        }
-        Special = locSpecial;
+        }        
     }
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
@@ -151,16 +148,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        row.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
 //            lasttime = ByteBuffer.wrap(cell.value()).getLong();
 //        });
-        boolean locSpecial = Boolean.FALSE;
+        
+        type = 1;
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
-            if (Arrays.equals(cell.qualifier(), "Special".getBytes())) {
-                locSpecial = cell.value()[0] == 1;
-            }
+            if (Arrays.equals(cell.qualifier(), "type".getBytes())) {
+                type = ByteBuffer.wrap(cell.value()).getShort();
+            }            
         }
-        Special = locSpecial;
+        
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
             throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
@@ -183,6 +181,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
+    @Deprecated
     public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
         tagsFullFilter = "";
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
@@ -196,7 +195,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
-        Special = false;
+        type = 1;
     }
 
     public OddeeyMetricMeta(OddeeyMetric metric, TSDB tsdb) throws Exception {
@@ -212,7 +211,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             tags.put(tag.getKey(), new OddeyeTag(tag.getKey(), tag.getValue(), tsdb));
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
         }
-        Special = (metric instanceof OddeeysSpecialMetric);
+        type = metric.getType();
     }
 
     public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
@@ -702,6 +701,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      * @return the Special
      */
     public boolean isSpecial() {
-        return Special;
+        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
     }
+
+    /**
+     * @return the type
+     */
+    public short getType() {
+        return type;
+    }
+    
+    public String getTypeName() {
+        return OddeeyMetricTypes.getName(type);
+    }     
 }

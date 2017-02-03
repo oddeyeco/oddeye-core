@@ -96,7 +96,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "Special".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
