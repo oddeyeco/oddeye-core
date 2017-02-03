@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import com.stumbleupon.async.Callback;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             java.util.logging.Logger.getLogger(OddeeyMetricMetaList.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table) {
         super();
 
@@ -103,11 +104,11 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
                 for (final ArrayList<KeyValue> row : rows) {
                     try {
                         OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
-                        for (KeyValue Regression : row) {
-                            if (Arrays.equals(Regression.qualifier(), "Regression".getBytes())) {
-                                metric.setSerializedRegression(Regression.value());
-                            }
-                        }
+//                        for (KeyValue Regression : row) {
+//                            if (Arrays.equals(Regression.qualifier(), "Regression".getBytes())) {
+//                                metric.setSerializedRegression(Regression.value());
+//                            }
+//                        }
                         OddeeyMetricMeta add = add(metric);
                     } catch (InvalidKeyException e) {
                         LOGGER.warn("InvalidKeyException " + row + " Is deleted");
@@ -121,47 +122,11 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
                 }
             }
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(OddeeyMetricMetaList.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.warn(globalFunctions.stackTrace(ex));
         }
 
     }
 
-//    public OddeeyMetricMetaList getbyTagK_or(String[] tagkeys) {
-//        final OddeeyMetricMetaList result = new OddeeyMetricMetaList();
-//        this.stream().forEach((OddeeyMetricMeta MetricMeta) -> {
-//            for (String tagkey : tagkeys) {
-//                if (MetricMeta.getTags().containsKey(tagkey)) {
-//                    if (!result.contains(MetricMeta)) {
-//                        result.add(MetricMeta);
-//                    }
-//                }
-//            }
-//        });
-//        return result;
-//    }
-//    public OddeeyMetricMetaList getbyTagV_or(String[] tagVs) {
-//        final OddeeyMetricMetaList result = new OddeeyMetricMetaList();
-//        this.stream().forEach((OddeeyMetricMeta MetricMeta) -> {
-//            for (String tagv : tagVs) {
-//                MetricMeta.getTags().entrySet().stream().filter((tag) -> (tag.getValue().getValue().equals(tagv))).filter((_item) -> (!result.contains(MetricMeta))).forEach((_item) -> {
-//                    result.add(MetricMeta);
-//                });
-//
-//            }
-//        });
-//        return result;
-//    }
-//    public OddeeyMetricMetaList getbyTag(OddeyeTag tag) {
-//        final OddeeyMetricMetaList result = new OddeeyMetricMetaList();
-//        this.stream().forEach((OddeeyMetricMeta MetricMeta) -> {
-//            if (MetricMeta.getTags().containsValue(tag)) {
-//                if (!result.contains(MetricMeta)) {
-//                    result.add(MetricMeta);
-//                }
-//            }
-//        });
-//        return result;
-//    }
     public OddeeyMetricMeta set(OddeeyMetricMeta e) {
         int code = e.hashCode();
         if (code == 0) {

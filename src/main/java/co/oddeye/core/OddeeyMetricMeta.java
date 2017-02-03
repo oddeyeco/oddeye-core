@@ -78,7 +78,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
     private short type;
-    
+
     @Override
     public OddeeyMetricMeta clone() throws CloneNotSupportedException {
         try {
@@ -90,7 +90,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
         Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
-        
+
         type = 1;
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
@@ -106,8 +106,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 });
             }
             if (key.equals("type")) {
-                type = OddeeyMetricTypes.getIndexByName(String.valueOf(value)) ;
-            }            
+                type = OddeeyMetricTypes.getIndexByName(String.valueOf(value));
+            }
             if (key.equals("metric")) {
                 name = String.valueOf(value);
                 if (name == null) {
@@ -120,7 +120,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 }
 
             }
-        }        
+        }
     }
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
@@ -148,7 +148,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        row.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
 //            lasttime = ByteBuffer.wrap(cell.value()).getLong();
 //        });
-        
+
         type = 1;
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
@@ -156,9 +156,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
             if (Arrays.equals(cell.qualifier(), "type".getBytes())) {
                 type = ByteBuffer.wrap(cell.value()).getShort();
-            }            
+            }
+            if (Arrays.equals(cell.qualifier(), "Regression".getBytes())) {
+                this.setSerializedRegression(cell.value());
+            }
         }
-        
+
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
         if (name == null) {
             throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
@@ -441,7 +444,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         String result = "";
         for (Map.Entry<String, OddeyeTag> tag : tags.entrySet()) {
             if (!tag.getKey().equals("UUID")) {
-                result = result + " " + tag.getKey() + ":" + tag.getValue().getValue()+separator;
+                result = result + " " + tag.getKey() + ":" + tag.getValue().getValue() + separator;
             }
         }
         return result;
@@ -710,8 +713,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public short getType() {
         return type;
     }
-    
+
     public String getTypeName() {
         return OddeeyMetricTypes.getName(type);
-    }     
+    }
 }
