@@ -125,5 +125,8 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric> , Cl
     public String getTypeName() {
         return OddeeyMetricTypes.getName(type);
     }    
-
+    
+    public boolean isSpecial() {
+        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
+    }
 }

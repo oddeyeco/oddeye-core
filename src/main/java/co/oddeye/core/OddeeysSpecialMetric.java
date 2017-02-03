@@ -31,13 +31,6 @@ public class OddeeysSpecialMetric extends OddeeyMetric{
     }
 
     /**
-     * @return the st
-     */
-    public boolean isSpecialTag() {
-        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
-    }
-
-    /**
      * @return the state
      */
     public String getStatus() {
