@@ -17,6 +17,7 @@ import java.util.Map;
  */
 public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
+    public final static Integer ALERT_END_ERROR = -1;
     public final static Integer ALERT_LEVEL_ALL = 0;
     public final static Integer ALERT_LEVEL_LOW = 1;
     public final static Integer ALERT_LEVEL_GUARDED = 2;

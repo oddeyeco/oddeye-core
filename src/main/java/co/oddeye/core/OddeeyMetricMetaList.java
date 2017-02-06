@@ -40,6 +40,44 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
         super();
     }
 
+    public OddeeyMetricMetaList(TSDB tsdb, byte[] table, boolean OnlySpecial) {
+        super();
+
+        try {
+            final HBaseClient client = tsdb.getClient();
+
+            Scanner scanner = client.newScanner(table);
+            scanner.setServerBlockCache(false);
+            scanner.setMaxNumRows(1000);
+            scanner.setFamily("d".getBytes());
+//            scanner.setQualifier("n".getBytes());
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
+            scanner.setQualifiers(Qualifiers);
+
+            ArrayList<ArrayList<KeyValue>> rows;
+            while ((rows = scanner.nextRows(1000).joinUninterruptibly()) != null) {
+                for (final ArrayList<KeyValue> row : rows) {
+                    try {
+                        OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
+                        if (metric.isSpecial() == OnlySpecial) {
+                            OddeeyMetricMeta add = add(metric);
+                        }
+                    } catch (InvalidKeyException e) {
+                        LOGGER.warn("InvalidKeyException " + row + " Is deleted");
+                        final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
+                        client.delete(deleterequest).joinUninterruptibly();
+                    } catch (Exception e) {
+                        LOGGER.warn(globalFunctions.stackTrace(e));
+                        LOGGER.warn("Can not add row to metrics " + row);
+                    }
+
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.error(globalFunctions.stackTrace(ex));
+        }
+    }
+
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table, String metricname) {
         super();
 
@@ -82,10 +120,10 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
                 }
             }
         } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(OddeeyMetricMetaList.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error(globalFunctions.stackTrace(ex));
         }
     }
-    
+
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table) {
         super();
 
