@@ -6,6 +6,7 @@
 package co.oddeye.core;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +35,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
     public final static Integer[] ALERT_LEVELS_INDEX = new Integer[]{ALERT_LEVEL_ALL, ALERT_LEVEL_LOW, ALERT_LEVEL_GUARDED, ALERT_LEVEL_ELEVATED, ALERT_LEVEL_HIGH, ALERT_LEVEL_SEVERE};
 
-    public final static String[] ALERT_LEVELS = new String[]{ST_ALERT_LEVEL_ALL, ST_ALERT_LEVEL_LOW, ST_ALERT_LEVEL_GUARDED, ST_ALERT_LEVEL_ELEVATED, ST_ALERT_LEVEL_HIGH, ST_ALERT_LEVEL_SEVERE};       
+    public final static String[] ALERT_LEVELS = new String[]{ST_ALERT_LEVEL_ALL, ST_ALERT_LEVEL_LOW, ST_ALERT_LEVEL_GUARDED, ST_ALERT_LEVEL_ELEVATED, ST_ALERT_LEVEL_HIGH, ST_ALERT_LEVEL_SEVERE};
 
     public final static String ST_ALERT_PARAM_VALUE_NAME = "Min Value";
     public final static String ST_ALERT_PARAM_PECENT_NAME = "Min Percent";
@@ -51,55 +52,81 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
     public final static String[] ALERT_LEVEL_PARAM = new String[]{ST_ALERT_PARAM_VALUE_NAME, ST_ALERT_PARAM_PECENT_NAME, ST_ALERT_PARAM_WEIGTH_NAME, ST_ALERT_PARAM_RECCOUNT_NAME, ST_ALERT_PARAM_PREDICTPERCENT_NAME};
 
     public AlertLevel() {
-        this(true);
+//        this(true);
     }
 
     public AlertLevel(boolean usedefault) {
         if (usedefault) {
-            this.put(ALERT_LEVEL_ALL, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 0.0)
-                    .put(ALERT_PARAM_PECENT, 0.0)
-                    .put(ALERT_PARAM_WEIGTH, 0.0)
-                    .put(ALERT_PARAM_RECCOUNT, 0.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 0.0)
-                    .build());
-            this.put(ALERT_LEVEL_LOW, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 1.0)
-                    .put(ALERT_PARAM_PECENT, 20.0)
-                    .put(ALERT_PARAM_WEIGTH, 8.0)
-                    .put(ALERT_PARAM_RECCOUNT, 1.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 20.0)
-                    .build());
 
-            this.put(ALERT_LEVEL_GUARDED, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 1.0)
-                    .put(ALERT_PARAM_PECENT, 30.0)
-                    .put(ALERT_PARAM_WEIGTH, 10.0)
-                    .put(ALERT_PARAM_RECCOUNT, 2.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 30.0)
-                    .build());
-            this.put(ALERT_LEVEL_ELEVATED, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 1.0)
-                    .put(ALERT_PARAM_PECENT, 50.0)
-                    .put(ALERT_PARAM_WEIGTH, 14.0)
-                    .put(ALERT_PARAM_RECCOUNT, 2.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 50.0)
-                    .build());
-            this.put(ALERT_LEVEL_HIGH, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 1.0)
-                    .put(ALERT_PARAM_PECENT, 70.0)
-                    .put(ALERT_PARAM_WEIGTH, 15.0)
-                    .put(ALERT_PARAM_RECCOUNT, 4.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 70.0)
-                    .build());
-            this.put(ALERT_LEVEL_SEVERE, ImmutableMap.<Integer, Double>builder()
-                    .put(ALERT_PARAM_VALUE, 1.0)
-                    .put(ALERT_PARAM_PECENT, 80.0)
-                    .put(ALERT_PARAM_WEIGTH, 16.0)
-                    .put(ALERT_PARAM_RECCOUNT, 4.0)
-                    .put(ALERT_PARAM_PREDICTPERSENT, 80.0)
-                    .build());
+//            new HashMap<String, String>() {
+//                {
+//                    put("a", "1");
+//                    put("b", "2");
+//                }
+//            }
+            this.put(ALERT_LEVEL_ALL, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 0.0);
+                    put(ALERT_PARAM_PECENT, 0.0);
+                    put(ALERT_PARAM_WEIGTH, 0.0);
+                    put(ALERT_PARAM_RECCOUNT, 0.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 0.0);
+                }
+            });
+            this.put(ALERT_LEVEL_LOW, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 1.0);
+                    put(ALERT_PARAM_PECENT, 20.0);
+                    put(ALERT_PARAM_WEIGTH, 8.0);
+                    put(ALERT_PARAM_RECCOUNT, 1.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 20.0);
+                }
+            });
 
+            this.put(ALERT_LEVEL_GUARDED, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 1.0);
+                    put(ALERT_PARAM_PECENT, 30.0);
+                    put(ALERT_PARAM_WEIGTH, 10.0);
+                    put(ALERT_PARAM_RECCOUNT, 2.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 30.0);
+                }
+            });
+
+            this.put(ALERT_LEVEL_ELEVATED, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 1.0);
+                    put(ALERT_PARAM_PECENT, 50.0);
+                    put(ALERT_PARAM_WEIGTH, 14.0);
+                    put(ALERT_PARAM_RECCOUNT, 2.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 50.0);
+                }
+            });            
+            this.put(ALERT_LEVEL_HIGH, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 1.0);
+                    put(ALERT_PARAM_PECENT, 70.0);
+                    put(ALERT_PARAM_WEIGTH, 15.0);
+                    put(ALERT_PARAM_RECCOUNT, 4.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 70.0);
+                }
+            });                        
+            this.put(ALERT_LEVEL_SEVERE, new HashMap<Integer, Double>() {
+                {
+                    put(ALERT_PARAM_VALUE, 1.0);
+                    put(ALERT_PARAM_PECENT, 80.0);
+                    put(ALERT_PARAM_WEIGTH, 16.0);
+                    put(ALERT_PARAM_RECCOUNT, 4.0);
+                    put(ALERT_PARAM_PREDICTPERSENT, 80.0);
+                }
+            }); 
+//            this.put(ALERT_LEVEL_SEVERE, ImmutableMap.<Integer, Double>builder()
+//                    .put(ALERT_PARAM_VALUE, 1.0)
+//                    .put(ALERT_PARAM_PECENT, 80.0)
+//                    .put(ALERT_PARAM_WEIGTH, 16.0)
+//                    .put(ALERT_PARAM_RECCOUNT, 4.0)
+//                    .put(ALERT_PARAM_PREDICTPERSENT, 80.0)
+//                    .build());
 //          this.get(this).get(this)
         }
     }
@@ -128,10 +155,9 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         }
         return "NaN";
     }
-    
+
     public static Integer getPyName(String Name) {
 
-        
         if (Name.equals("OK")) {
             return -1;
         }
@@ -140,10 +166,9 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         }
         if (Name.equals("ERROR")) {
             return ALERT_LEVEL_SEVERE;
-        }        
+        }
         return -1;
-    }    
-    
+    }
 
     public Integer getErrorLevel(int weight, double weight_per, Double value, double predict_value_per) {
         Integer[] Levels = ALERT_LEVELS_INDEX;
