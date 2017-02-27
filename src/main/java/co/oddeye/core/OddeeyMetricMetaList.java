@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
+public class OddeeyMetricMetaList extends  ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
     protected final ArrayList<String> Tagkeys = new ArrayList();
     protected final ArrayList<String> Tagkeyv = new ArrayList();
@@ -171,7 +172,17 @@ public class OddeeyMetricMetaList extends HashMap<Integer, OddeeyMetricMeta> {
             LOGGER.warn("Get hash Error for " + e.getName());
             return null;
         }
-        return this.put(code, e);
+        if (this.containsKey(code))
+        {
+//          TODO Mi ban en chi            
+//          return  this.get(code);
+          return  this.replace(code, e);
+        }
+        else
+        {
+            return this.put(code, e);
+        }
+        
     }
 
     /**

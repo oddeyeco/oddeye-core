@@ -7,6 +7,7 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
@@ -76,6 +77,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(150, TimeUnit.MINUTES).build();
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(80, TimeUnit.MINUTES).build();
     private SimpleRegression regression = new SimpleRegression();
+    
+    private ArrayList<Map<String,Object>> LevelValuesList = new ArrayList();        
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
     private short type;
@@ -743,6 +746,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         } catch (Exception ex) {
 //            java.util.logging.Logger.getLogger(OddeeyMetricMeta.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /**
+     * @return the LevelOddeeyMetricList
+     */
+    public ArrayList<Map<String,Object>> LevelValuesList() {
+        return LevelValuesList;
     }
 
 }
