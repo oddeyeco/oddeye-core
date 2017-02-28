@@ -19,6 +19,7 @@ import java.util.Arrays;
 public class ErrorState implements Serializable {
 
     private int level = -255;
+    private int prevlevel = -1;
     private int state;
     private long time;
     private long timestart;
@@ -122,6 +123,7 @@ public class ErrorState implements Serializable {
      * @param timestamp
      */
     public void setLevel(int level, long timestamp) {
+        this.prevlevel = this.level;
         if (this.level == level) {
             state = ALERT_STATE_CONT;
         } else if (this.level == -1) {
@@ -162,6 +164,13 @@ public class ErrorState implements Serializable {
      */
     public String getMessage() {
         return message;
+    }
+
+    /**
+     * @return the prevlevel
+     */
+    public int getPrevlevel() {
+        return prevlevel;
     }
 
 }
