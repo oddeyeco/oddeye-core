@@ -6,6 +6,11 @@
 package co.oddeye.core;
 
 import com.google.gson.JsonElement;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,4 +148,16 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     public int getReaction() {
         return reaction;
     }
+    
+    public OddeeyMetric dublicate () throws IOException, ClassNotFoundException
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ObjectOutputStream ous = new ObjectOutputStream(baos)) {
+            ous.writeObject(this);
+        }          
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        
+        return (OddeeyMetric)ois.readObject();
+    }    
 }

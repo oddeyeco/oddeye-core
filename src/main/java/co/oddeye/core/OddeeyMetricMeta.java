@@ -738,11 +738,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             ScanFilter filter = new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator("timestamp".getBytes()));
             get.setFilter(filter);
             final ArrayList<KeyValue> data = client.get(get).joinUninterruptibly();
-            for (KeyValue cell : data) {
-                if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
-                    lasttime = ByteBuffer.wrap(cell.value()).getLong();
-                }
-            }
+            data.stream().filter((cell) -> (Arrays.equals(cell.qualifier(), "timestamp".getBytes()))).forEachOrdered((cell) -> {
+                lasttime = ByteBuffer.wrap(cell.value()).getLong();
+            });
         } catch (Exception ex) {
 //            java.util.logging.Logger.getLogger(OddeeyMetricMeta.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -754,5 +752,16 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public ArrayList<Map<String,Object>> LevelValuesList() {
         return LevelValuesList;
     }
-
+    
+    public OddeeyMetricMeta dublicate () throws IOException, ClassNotFoundException
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ObjectOutputStream ous = new ObjectOutputStream(baos)) {
+            ous.writeObject(this);
+        }          
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        
+        return (OddeeyMetricMeta)ois.readObject();
+    }
 }
