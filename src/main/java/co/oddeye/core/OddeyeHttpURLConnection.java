@@ -50,9 +50,9 @@ public class OddeyeHttpURLConnection {
             con.setRequestProperty("User-Agent", USER_AGENT);
             try {
                 int responseCode = con.getResponseCode();
-                System.out.println("Response Code : " + responseCode);
+//                System.out.println("Response Code : " + responseCode);
                 StringBuffer response;
-                System.out.println("Sending 'GET' request to URL : " + url);
+//                System.out.println("Sending 'GET' request to URL : " + url);
                 try (BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()))) {
                     String inputLine;
