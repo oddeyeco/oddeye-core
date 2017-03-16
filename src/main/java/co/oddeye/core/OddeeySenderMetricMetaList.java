@@ -36,7 +36,7 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList {
     }
 
     /**
-     * @param targetValuew the targetValue to set
+     * @param targetValue
      */
     public void setTargetValue(String targetValue) {
         this.targetValue = targetValue;
