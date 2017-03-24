@@ -77,8 +77,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(150, TimeUnit.MINUTES).build();
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(80, TimeUnit.MINUTES).build();
     private SimpleRegression regression = new SimpleRegression();
-    
-    private ArrayList<Map<String,Object>> LevelValuesList = new ArrayList();        
+
+    private ArrayList<Map<String, Object>> LevelValuesList = new ArrayList();
     private ArrayList<Integer> LevelList = new ArrayList();
     private ErrorState ErrorState = new ErrorState();
     private short type;
@@ -588,9 +588,16 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
     @Override
     public int compareTo(OddeeyMetricMeta o) {
-        int result = name.compareTo(o.getName());
-        return result;
-
+        int result;
+        if (type == o.type) {
+            if (name.equals(o.getName())) {
+                result = tags.toString().compareTo(o.getTags().toString());
+                return result;
+            }
+            result = name.compareTo(o.getName());
+            return result;
+        }
+        return type > o.type ? 1 : -1;
     }
 
     /**
@@ -749,19 +756,18 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     /**
      * @return the LevelOddeeyMetricList
      */
-    public ArrayList<Map<String,Object>> LevelValuesList() {
+    public ArrayList<Map<String, Object>> LevelValuesList() {
         return LevelValuesList;
     }
-    
-    public OddeeyMetricMeta dublicate () throws IOException, ClassNotFoundException
-    {
+
+    public OddeeyMetricMeta dublicate() throws IOException, ClassNotFoundException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ObjectOutputStream ous = new ObjectOutputStream(baos)) {
             ous.writeObject(this);
-        }          
+        }
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         ObjectInputStream ois = new ObjectInputStream(bais);
-        
-        return (OddeeyMetricMeta)ois.readObject();
+
+        return (OddeeyMetricMeta) ois.readObject();
     }
 }
