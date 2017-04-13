@@ -6,6 +6,7 @@
 package co.oddeye.core;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
@@ -29,6 +30,7 @@ public class globalFunctions {
     private static HBaseClient secindaryclient = null;
     private static TSDB secindarytsdb = null; 
     private static final Gson gson = new Gson();
+    private static final JsonParser PARSER = new JsonParser();
     private static final Calendar calendar = Calendar.getInstance();
     
     static public String stackTrace(Exception cause) {
@@ -133,4 +135,11 @@ public class globalFunctions {
         calendar.setTimeInMillis(timestamp);
         return ByteBuffer.allocate(3).put((byte)calendar.get(Calendar.HOUR_OF_DAY)).put((byte)calendar.get(Calendar.MINUTE)).put((byte)calendar.get(Calendar.SECOND)).array();
     }    
+
+    /**
+     * @return the PARSER
+     */
+    public static JsonParser getJsonParser() {
+        return PARSER;
+    }
 }
