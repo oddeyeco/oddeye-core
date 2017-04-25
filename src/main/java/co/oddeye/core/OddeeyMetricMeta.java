@@ -7,7 +7,6 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
@@ -32,7 +31,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import net.opentsdb.core.DataPoint;
 import net.opentsdb.core.DataPoints;
 
