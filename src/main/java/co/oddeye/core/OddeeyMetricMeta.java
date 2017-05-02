@@ -401,23 +401,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             GetRequest get = new GetRequest(table, getKey());
             get.setFilter(filterlist);            
             ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
-//            int emptyrules = list.size() - ruledata.size();
-//            if (emptyrules > 0) {
-//                for (int i = 0; i < emptyrules; i++) {
-//                    final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-//                    Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
-//                    if (Rule == null) {
-//                        Rule = new MetriccheckRule(getKey(), time_key);
-//                        list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
-//                    }
-//                    rules.put(Hex.encodeHexString(time_key), Rule);
-//
-//                    CalendarObj.add(Calendar.DATE, -1);
-//                }
-//                ruledata = client.get(get).joinUninterruptibly();
-//            }
             if (ruledata.isEmpty()) {
-                LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
+                LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);         
+                RulesCache.putAll(rules);
+                rules.clear();
             } else {
                 Collections.reverse(ruledata);
                 int validcount =0;
@@ -432,7 +419,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     if (Rule.isIsValidRule())
                     {
                         validcount++;
-                    }                    
+                    }
                     if (validcount>days)
                     {
                         rules.remove(Hex.encodeHexString(kv.qualifier()));
