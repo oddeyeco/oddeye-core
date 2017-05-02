@@ -377,20 +377,20 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        for (int i = 0; i < days; i++) {
 //
 //        }      
-        while ((rules.size() < days)) {
+        while ((rules.size() < days*2)) {
             final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
             Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
             if (Rule == null) {
                 Rule = new MetriccheckRule(getKey(), time_key);
                 list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
             }
-            else
-            {
-                if (!Rule.isIsValidRule())
-                {
-                    days++;
-                }
-            }
+//            else
+//            {
+//                if (!Rule.isIsValidRule())
+//                {
+//                    days++;
+//                }
+//            }
             rules.put(Hex.encodeHexString(time_key), Rule);
             
             CalendarObj.add(Calendar.DATE, -1);
@@ -399,34 +399,48 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         if (list.size() > 0) {
             FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
             GetRequest get = new GetRequest(table, getKey());
-            get.setFilter(filterlist);
+            get.setFilter(filterlist);            
             ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
-            int emptyrules = list.size() - ruledata.size();
-            if (emptyrules > 0) {
-                for (int i = 0; i < emptyrules; i++) {
-                    final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-                    Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
-                    if (Rule == null) {
-                        Rule = new MetriccheckRule(getKey(), time_key);
-                        list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
-                    }
-                    rules.put(Hex.encodeHexString(time_key), Rule);
-
-                    CalendarObj.add(Calendar.DATE, -1);
-                }
-                ruledata = client.get(get).joinUninterruptibly();
-            }
+//            int emptyrules = list.size() - ruledata.size();
+//            if (emptyrules > 0) {
+//                for (int i = 0; i < emptyrules; i++) {
+//                    final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+//                    Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
+//                    if (Rule == null) {
+//                        Rule = new MetriccheckRule(getKey(), time_key);
+//                        list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
+//                    }
+//                    rules.put(Hex.encodeHexString(time_key), Rule);
+//
+//                    CalendarObj.add(Calendar.DATE, -1);
+//                }
+//                ruledata = client.get(get).joinUninterruptibly();
+//            }
             if (ruledata.isEmpty()) {
                 LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
             } else {
+                Collections.reverse(ruledata);
+                int validcount =0;
                 for (final KeyValue kv : ruledata) {
                     if (kv.qualifier().length != 6) {
                         continue;
                     }
                     Rule = new MetriccheckRule(getKey(), kv.qualifier());
                     Rule.update(kv.value());
-                    rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
+                    
                     LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
+                    if (Rule.isIsValidRule())
+                    {
+                        validcount++;
+                    }                    
+                    if (validcount>days)
+                    {
+                        rules.remove(Hex.encodeHexString(kv.qualifier()));
+                    }
+                    else
+                    {
+                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
+                    }
                 }
             }
 
