@@ -607,7 +607,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     @Override
     public int compareTo(OddeeyMetricMeta o) {
         int result;
-        if (type == o.type) {
+        
+        if (isSpecial() == o.isSpecial()) {
             if (name.equals(o.getName())) {
                 result = tags.toString().compareTo(o.getTags().toString());
                 return result;
