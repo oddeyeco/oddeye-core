@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -369,7 +371,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
-        Map<String, MetriccheckRule> rules = new TreeMap<>();
+        Map<String, MetriccheckRule> rules = new TreeMap<>();        
+        Set<String> remrules = new HashSet<> ();
         MetriccheckRule Rule;
 
         List<ScanFilter> list = new LinkedList<>();
@@ -390,14 +393,14 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 }
             }
             rules.put(Hex.encodeHexString(time_key), Rule);
-            
+
             if (validcount >= days) {
                 break;
-            }            
+            }
 
             CalendarObj.add(Calendar.DATE, -1);
         }
-
+        remrules.addAll(rules.keySet());
         if (list.size() > 0) {
             FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
             GetRequest get = new GetRequest(table, getKey());
@@ -425,10 +428,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         rules.remove(Hex.encodeHexString(kv.qualifier()));
                     } else {
                         rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
+                        remrules.remove(Hex.encodeHexString(kv.qualifier()));
                     }
                 }
             }
-
+            rules.keySet().removeAll(remrules);
             try {
                 RulesCache.putAll(rules);
             } catch (Exception e) {
@@ -607,7 +611,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     @Override
     public int compareTo(OddeeyMetricMeta o) {
         int result;
-        
+
         if (isSpecial() == o.isSpecial()) {
             if (name.equals(o.getName())) {
                 result = tags.toString().compareTo(o.getTags().toString());
