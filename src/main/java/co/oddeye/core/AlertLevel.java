@@ -159,8 +159,11 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         if (Name.equals("OK")) {
             return -1;
         }
-        if (Name.equals("WARNING")) {
+        if (Name.equals("ELEVATED")) {
             return ALERT_LEVEL_ELEVATED;
+        }        
+        if (Name.equals("WARNING")) {
+            return ALERT_LEVEL_HIGH;
         }
         if (Name.equals("ERROR")) {
             return ALERT_LEVEL_SEVERE;
