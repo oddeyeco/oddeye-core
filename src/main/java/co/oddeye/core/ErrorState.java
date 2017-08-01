@@ -29,7 +29,7 @@ public class ErrorState implements Serializable, Comparable {
     private int prevlevel = -1;
     private int state;
     private long time;
-    private long timestart;
+    private boolean upstate;
     private long timeend;
     private String message;
     private final Integer reaction;
@@ -249,6 +249,20 @@ public class ErrorState implements Serializable, Comparable {
     public int compareTo(Object o) {
         final ErrorState os = (ErrorState) o;
         return getTimestart() > os.getTimestart() ? 1 : -1;
+    }
+
+    /**
+     * @return the upstate
+     */
+    public boolean isUpstate() {
+        return upstate;
+    }
+
+    /**
+     * @param upstate the upstate to set
+     */
+    public void setUpstate(boolean upstate) {
+        this.upstate = upstate;
     }
 
 }
