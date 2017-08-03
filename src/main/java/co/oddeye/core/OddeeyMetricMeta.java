@@ -222,6 +222,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
         }
         type = metric.getType();
+        lasttime = metric.getTimestamp();
     }
 
     public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
