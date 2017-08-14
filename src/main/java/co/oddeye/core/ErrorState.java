@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class ErrorState implements Serializable, Comparable {
+
     private int level = -255;
     private int prevlevel = -1;
     private int state;
@@ -53,6 +54,7 @@ public class ErrorState implements Serializable, Comparable {
     public final static String[] ALERT_STATE = new String[]{ST_ALERT_STATE_START, ST_ALERT_STATE_CONT, ST_ALERT_STATE_DW, ST_ALERT_STATE_UP};
 
     static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ErrorState.class);
+
     public static ErrorState createSerializedErrorState(byte[] Bytes) {
         ErrorState result = null;
         if (Bytes.length > 0) {
@@ -74,8 +76,8 @@ public class ErrorState implements Serializable, Comparable {
             }
         }
         return result;
-    }          
-    
+    }
+
     public byte[] getSerialized() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out;
@@ -93,15 +95,14 @@ public class ErrorState implements Serializable, Comparable {
                 // ignore close exception
             }
         }
-    }    
-        
-    
+    }
+
     public ErrorState() {
         super();
         starttimes = new HashMap<>();
         endtimes = new HashMap<>();
         reaction = null;
-        startvalue  = null;
+        startvalue = null;
     }
 
     public ErrorState(JsonObject ErrorData) {
@@ -109,9 +110,10 @@ public class ErrorState implements Serializable, Comparable {
         level = ErrorData.get("level").getAsInt();
         state = ErrorData.get("action").getAsInt();
         time = ErrorData.get("time").getAsLong();
-        
+
         reaction = ErrorData.get("reaction").getAsInt();
-        startvalue  = ErrorData.get("startvalue").getAsDouble();
+        startvalue = ErrorData.get("startvalue").getAsDouble();
+
         java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>() {
         }.getType();
         starttimes = globalFunctions.getGson().fromJson(ErrorData.get("starttimes"), type);
@@ -119,6 +121,23 @@ public class ErrorState implements Serializable, Comparable {
         if (ErrorData.get("message") != null) {
             message = ErrorData.get("message").getAsString();
         }
+    }
+
+    public JsonObject ToJson(OddeeyMetric metric) {
+        JsonObject result = new JsonObject();
+        result.addProperty("level", getLevel());
+        result.addProperty("action", getState());
+        result.addProperty("time", metric.getTimestamp());
+        result.addProperty("reaction", metric.getReaction());
+        result.addProperty("startvalue", metric.getValue());
+        if (metric instanceof OddeeysSpecialMetric) {
+            final OddeeysSpecialMetric Specmetric = (OddeeysSpecialMetric) metric;
+            result.addProperty("message", Specmetric.getMessage());
+        }
+
+        result.add("starttimes", globalFunctions.getGson().toJsonTree(getStarttimes()));
+        result.add("endtimes", globalFunctions.getGson().toJsonTree(getEndtimes()));
+        return result;
     }
 
     /**
