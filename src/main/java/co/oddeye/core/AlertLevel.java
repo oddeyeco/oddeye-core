@@ -151,7 +151,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         if (contains) {
             return ALERT_LEVELS[idx];
         }
-        return "NaN";
+        return "NaN "+idx;
     }
 
     public static Integer getPyName(String Name) {
