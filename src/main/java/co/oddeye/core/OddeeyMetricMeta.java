@@ -631,6 +631,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return lasttime;
     }
 
+    public void setLasttime(long time) {
+        lasttime = time;
+    }
+    
+    
     /**
      * @return the regression
      */
