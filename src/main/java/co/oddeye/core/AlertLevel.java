@@ -184,7 +184,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
                 return level;
             }
         }
-        return ALERT_LEVEL_ALL;
+        return ALERT_END_ERROR;
     }
 
 }

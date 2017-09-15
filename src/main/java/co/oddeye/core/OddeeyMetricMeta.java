@@ -675,7 +675,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      * @throws java.io.IOException
      * @throws java.lang.ClassNotFoundException
      */
-    public void setSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
+    public final void setSerializedRegression(byte[] Bytes) throws IOException, ClassNotFoundException {
         if (Bytes.length > 0) {
             ByteArrayInputStream bis = new ByteArrayInputStream(Bytes);
             ObjectInput in = null;

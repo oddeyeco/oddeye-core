@@ -8,6 +8,9 @@ package co.oddeye.core;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
 import net.opentsdb.query.QueryUtil;
@@ -26,7 +29,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMetaList extends  ConcurrentHashMap<Integer, OddeeyMetricMeta> {
+public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
     protected final ArrayList<String> Tagkeys = new ArrayList();
     protected final ArrayList<String> Tagkeyv = new ArrayList();
@@ -129,31 +132,46 @@ public class OddeeyMetricMetaList extends  ConcurrentHashMap<Integer, OddeeyMetr
 
             Scanner scanner = client.newScanner(table);
             scanner.setServerBlockCache(false);
-            scanner.setMaxNumRows(1000);
+            scanner.setMaxNumRows(10000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
             final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
-            while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
-                for (final ArrayList<KeyValue> row : rows) {
+            class AddMeta implements Runnable {
+
+                private final ArrayList<KeyValue> row;
+
+                public AddMeta(ArrayList<KeyValue> o_row) {
+                   row=o_row;
+                }
+
+                @Override
+                public void run() {
                     try {
                         OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
-//                        for (KeyValue Regression : row) {
-//                            if (Arrays.equals(Regression.qualifier(), "Regression".getBytes())) {
-//                                metric.setSerializedRegression(Regression.value());
-//                            }
-//                        }
                         OddeeyMetricMeta add = add(metric);
                     } catch (InvalidKeyException e) {
-                        LOGGER.warn("InvalidKeyException " + row + " Is deleted");
-                        final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
-                        client.delete(deleterequest).joinUninterruptibly();
+                        try {
+                            LOGGER.warn("InvalidKeyException " + row + " Is deleted");
+                            final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
+                            client.delete(deleterequest).joinUninterruptibly();
+                        } catch (Exception ex) {
+                            LOGGER.error(globalFunctions.stackTrace(ex));
+                        }
                     } catch (Exception e) {
                         LOGGER.warn(globalFunctions.stackTrace(e));
                         LOGGER.warn("Can not add row to metrics " + row);
                     }
 
+                }
+
+            }
+
+            ExecutorService executor = Executors.newFixedThreadPool(24);
+            while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
+                for (final ArrayList<KeyValue> row : rows) {
+                    executor.submit(new AddMeta(row));
                 }
             }
         } catch (Exception ex) {
@@ -168,17 +186,14 @@ public class OddeeyMetricMetaList extends  ConcurrentHashMap<Integer, OddeeyMetr
             LOGGER.warn("Get hash Error for " + e.getName());
             return null;
         }
-        if (this.containsKey(code))
-        {
+        if (this.containsKey(code)) {
 //          TODO Mi ban en chi            
 //          return  this.get(code);
-          return  this.replace(code, e);
-        }
-        else
-        {
+            return this.replace(code, e);
+        } else {
             return this.put(code, e);
         }
-        
+
     }
 
     /**
