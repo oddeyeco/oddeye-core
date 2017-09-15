@@ -205,7 +205,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");
         }
 
-        e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEach((tagkey) -> {
+        e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
             Tagkeys.add(tagkey);
         });
 
