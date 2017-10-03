@@ -143,7 +143,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
                 private final ArrayList<KeyValue> row;
 
                 public AddMeta(ArrayList<KeyValue> o_row) {
-                   row=o_row;
+                    row = o_row;
                 }
 
                 @Override
@@ -203,15 +203,28 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
     private OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode e infa" + e.getName() + " tags " + e.getTags());
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode contains infa" + this.get(e.hashCode()).getName() + " tags " + this.get(e.hashCode()).getTags());
+        }
+        try {
+            e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
+                Tagkeys.add(tagkey);
+            });
+
+        } catch (Exception ex) {
+            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+            OddeeyMetricMeta.LOGGER.warn("Tagkeys ERROR e infa" + e.getName() + " tags " + e.getTags());
         }
 
-        e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
-            Tagkeys.add(tagkey);
-        });
+        try {
+            e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEachOrdered((tag) -> {
+                Tagkeyv.add(tag.getValue().getValue());
+            });
+        } catch (Exception ex) {
+            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+            OddeeyMetricMeta.LOGGER.warn("Tagkeyv ERROR e infa" + e.getName() + " tags " + e.getTags());
 
-        e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEachOrdered((tag) -> {
-            Tagkeyv.add(tag.getValue().getValue());
-        });
+        }
 
         return this.put(e.hashCode(), e);
     }
