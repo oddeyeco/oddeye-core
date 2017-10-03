@@ -230,27 +230,6 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv "+tagvalue.getValue().getValue()+" ERROR e infa" + e.getName() + " tags " + e.getTags());
             }
         }
-
-//        try {
-//            
-//            e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
-//                Tagkeys.add(tagkey);
-//            });
-//
-//        } catch (Exception ex) {
-//            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
-//            OddeeyMetricMeta.LOGGER.warn("Tagkeys ERROR e infa" + e.getName() + " tags " + e.getTags());
-//        }
-//
-//        try {
-//            e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEachOrdered((tag) -> {
-//                Tagkeyv.add(tag.getValue().getValue());
-//            });
-//        } catch (Exception ex) {
-//            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
-//            OddeeyMetricMeta.LOGGER.warn("Tagkeyv  ERROR e infa" + e.getName() + " tags " + e.getTags());
-//
-//        }
         return this.put(e.hashCode(), e);
     }
 
