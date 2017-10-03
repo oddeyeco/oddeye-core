@@ -206,26 +206,51 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode e infa" + e.getName() + " tags " + e.getTags());
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode contains infa" + this.get(e.hashCode()).getName() + " tags " + this.get(e.hashCode()).getTags());
         }
-        try {
-            e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
-                Tagkeys.add(tagkey);
-            });
 
-        } catch (Exception ex) {
-            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
-            OddeeyMetricMeta.LOGGER.warn("Tagkeys ERROR e infa" + e.getName() + " tags " + e.getTags());
-        }
-
-        try {
-            e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEachOrdered((tag) -> {
-                Tagkeyv.add(tag.getValue().getValue());
-            });
-        } catch (Exception ex) {
-            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
-            OddeeyMetricMeta.LOGGER.warn("Tagkeyv ERROR e infa" + e.getName() + " tags " + e.getTags());
+        for (String tagkey : e.getTags().keySet()) {
+            try {
+                if (!Tagkeys.contains(tagkey)) {
+                    Tagkeys.add(tagkey);
+                }
+            } catch (Exception ex) {
+                OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+                OddeeyMetricMeta.LOGGER.warn("Tagkeys " + tagkey + " ERROR e infa" + e.getName() + " tags " + e.getTags());
+            }
 
         }
 
+        for (Entry<String, OddeyeTag> tagvalue : e.getTags().entrySet()) {
+            try {
+
+                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
+                    Tagkeyv.add(tagvalue.getValue().getValue());
+                }
+            } catch (Exception ex) {
+                OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+                OddeeyMetricMeta.LOGGER.warn("Tagkeyv "+tagvalue.getValue().getValue()+" ERROR e infa" + e.getName() + " tags " + e.getTags());
+            }
+        }
+
+//        try {
+//            
+//            e.getTags().keySet().stream().filter((tagkey) -> (!Tagkeys.contains(tagkey))).forEachOrdered((tagkey) -> {
+//                Tagkeys.add(tagkey);
+//            });
+//
+//        } catch (Exception ex) {
+//            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+//            OddeeyMetricMeta.LOGGER.warn("Tagkeys ERROR e infa" + e.getName() + " tags " + e.getTags());
+//        }
+//
+//        try {
+//            e.getTags().entrySet().stream().filter((tag) -> (!Tagkeyv.contains(tag.getValue().getValue()))).forEachOrdered((tag) -> {
+//                Tagkeyv.add(tag.getValue().getValue());
+//            });
+//        } catch (Exception ex) {
+//            OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
+//            OddeeyMetricMeta.LOGGER.warn("Tagkeyv  ERROR e infa" + e.getName() + " tags " + e.getTags());
+//
+//        }
         return this.put(e.hashCode(), e);
     }
 
