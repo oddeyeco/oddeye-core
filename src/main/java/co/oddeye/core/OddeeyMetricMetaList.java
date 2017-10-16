@@ -7,6 +7,7 @@ package co.oddeye.core;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,8 +32,8 @@ import org.slf4j.LoggerFactory;
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
-    protected final ArrayList<String> Tagkeys = new ArrayList();
-    protected final ArrayList<String> Tagkeyv = new ArrayList();
+    protected final TreeSet<String> Tagkeys = new TreeSet<>();
+    protected final TreeSet<String> Tagkeyv = new TreeSet();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
@@ -200,36 +201,31 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
      * @param e
      * @return the OddeeyMetricMeta
      */
-    private OddeeyMetricMeta add(OddeeyMetricMeta e) {
+    protected OddeeyMetricMeta add(OddeeyMetricMeta e) {
         if (this.containsKey(e.hashCode())) {
             OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode e infa" + e.getName() + " tags " + e.getTags());
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode contains infa" + this.get(e.hashCode()).getName() + " tags " + this.get(e.hashCode()).getTags());
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode e infa " + e.getName() + " tags " + e.getTags());
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode c infa " + this.get(e.hashCode()).getName() + " tags " + this.get(e.hashCode()).getTags());
+            return null;
         }
 
-        for (String tagkey : e.getTags().keySet()) {
+        e.getTags().keySet().forEach((tagkey) -> {
             try {
-                if (!Tagkeys.contains(tagkey)) {
-                    Tagkeys.add(tagkey);
-                }
+                Tagkeys.add(tagkey);
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeys " + tagkey + " ERROR e infa" + e.getName() + " tags " + e.getTags());
             }
+        });
 
-        }
-
-        for (Entry<String, OddeyeTag> tagvalue : e.getTags().entrySet()) {
+        e.getTags().entrySet().forEach((tagvalue) -> {
             try {
-
-                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
-                    Tagkeyv.add(tagvalue.getValue().getValue());
-                }
+                Tagkeyv.add(tagvalue.getValue().getValue());
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
-                OddeeyMetricMeta.LOGGER.warn("Tagkeyv "+tagvalue.getValue().getValue()+" ERROR e infa" + e.getName() + " tags " + e.getTags());
+                OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa" + e.getName() + " tags " + e.getTags());
             }
-        }
+        });
         return this.put(e.hashCode(), e);
     }
 
