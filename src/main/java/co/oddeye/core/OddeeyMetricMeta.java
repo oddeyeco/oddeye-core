@@ -778,7 +778,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             });
         } catch (Exception ex) {
-//            java.util.logging.Logger.getLogger(OddeeyMetricMeta.class.getName()).log(Level.SEVERE, null, ex);
+           LOGGER.error(globalFunctions.stackTrace(ex));
         }
     }
 
@@ -798,5 +798,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         ObjectInputStream ois = new ObjectInputStream(bais);
 
         return (OddeeyMetricMeta) ois.readObject();
+    }
+
+    public void update(OddeeyMetricMeta mtrscMeta) {
+        this.lasttime = mtrscMeta.getLasttime();
     }
 }

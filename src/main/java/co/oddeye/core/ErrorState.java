@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 public class ErrorState implements Serializable, Comparable {
 
     private int level = -255;
+    private int flap = 0;
     private int prevlevel = -1;
     private int state;
     private long time;
@@ -202,6 +203,14 @@ public class ErrorState implements Serializable, Comparable {
     public void setLevel(int level, long timestamp) {
         this.prevlevel = this.level;
         if (this.level == level) {
+            if (flap > 0) {
+                flap--;
+            }
+        } else {
+            flap++;
+        }
+
+        if (this.level == level) {
             state = ALERT_STATE_CONT;
         } else if (this.level == -1) {
             state = ALERT_STATE_START;
@@ -282,6 +291,13 @@ public class ErrorState implements Serializable, Comparable {
      */
     public void setUpstate(boolean upstate) {
         this.upstate = upstate;
+    }
+
+    /**
+     * @return the flap
+     */
+    public int getFlap() {
+        return flap;
     }
 
 }
