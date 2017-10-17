@@ -6,12 +6,10 @@
 package co.oddeye.core;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 
 import net.opentsdb.core.TSDB;
 import net.opentsdb.query.QueryUtil;
@@ -32,8 +30,8 @@ import org.slf4j.LoggerFactory;
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
-    protected final TreeSet<String> Tagkeys = new TreeSet<>();
-    protected final TreeSet<String> Tagkeyv = new TreeSet();
+    protected final ArrayList<String> Tagkeys = new ArrayList();
+    protected final ArrayList<String> Tagkeyv = new ArrayList();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
@@ -211,7 +209,9 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
         e.getTags().keySet().forEach((tagkey) -> {
             try {
-                Tagkeys.add(tagkey);
+                if (!Tagkeys.contains(tagkey)) {
+                    Tagkeys.add(tagkey);
+                }
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeys " + tagkey + " ERROR e infa" + e.getName() + " tags " + e.getTags());
@@ -220,7 +220,10 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
         e.getTags().entrySet().forEach((tagvalue) -> {
             try {
-                Tagkeyv.add(tagvalue.getValue().getValue());
+                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
+                    Tagkeyv.add(tagvalue.getValue().getValue());
+                }                
+                
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa" + e.getName() + " tags " + e.getTags());
