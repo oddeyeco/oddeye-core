@@ -6,6 +6,7 @@
 package co.oddeye.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -30,8 +31,8 @@ import org.slf4j.LoggerFactory;
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
-    protected final ArrayList<String> Tagkeys = new ArrayList();
-    protected final ArrayList<String> Tagkeyv = new ArrayList();
+    protected final HashMap<String,Integer> Tagkeys = new HashMap();
+    protected final HashMap<String,Integer> Tagkeyv = new HashMap();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
@@ -209,8 +210,13 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
         e.getTags().keySet().forEach((tagkey) -> {
             try {
-                if (!Tagkeys.contains(tagkey)) {
-                    Tagkeys.add(tagkey);
+                if (!Tagkeys.containsKey(tagkey)) {
+                    Tagkeys.put(tagkey,1);
+                }
+                else
+                {
+                    Integer count = Tagkeys.get(tagkey);
+                    Tagkeys.put(tagkey,count++);
                 }
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
@@ -220,9 +226,18 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
         e.getTags().entrySet().forEach((tagvalue) -> {
             try {
-                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
-                    Tagkeyv.add(tagvalue.getValue().getValue());
+                if (!Tagkeyv.containsKey(tagvalue.getValue().getValue())) {
+                    Tagkeyv.put(tagvalue.getValue().getValue(),1);
+                }
+                else
+                {
+                    Integer count = Tagkeyv.get(tagvalue.getValue().getValue());
+                    Tagkeyv.put(tagvalue.getValue().getValue(),count++);
                 }                
+                
+//                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
+//                    Tagkeyv.add(tagvalue.getValue().getValue());
+//                }                
                 
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
@@ -234,7 +249,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
     public String[] getTagK() {
         String[] stockArr = new String[Tagkeys.size()];
-        return Tagkeys.toArray(stockArr);
+        return Tagkeys.keySet().toArray(stockArr);
     }
 
     /**
@@ -242,7 +257,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
      */
     public String[] getTagkeyV() {
         String[] stockArr = new String[Tagkeyv.size()];
-        return Tagkeyv.toArray(stockArr);
+        return Tagkeyv.keySet().toArray(stockArr);
 
     }
 
