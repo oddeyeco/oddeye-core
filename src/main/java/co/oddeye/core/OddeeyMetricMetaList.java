@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
 
-    protected final HashMap<String,Integer> Tagkeys = new HashMap();
-    protected final HashMap<String,Integer> Tagkeyv = new HashMap();
+    protected final HashMap<String, Integer> Tagkeys = new HashMap();
+    protected final HashMap<String, Integer> Tagkeyv = new HashMap();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
@@ -138,40 +138,10 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
-            class AddMeta implements Runnable {
-
-                private final ArrayList<KeyValue> row;
-
-                public AddMeta(ArrayList<KeyValue> o_row) {
-                    row = o_row;
-                }
-
-                @Override
-                public void run() {
-                    try {
-                        OddeeyMetricMeta metric = new OddeeyMetricMeta(row, tsdb, false);
-                        OddeeyMetricMeta add = add(metric);
-                    } catch (InvalidKeyException e) {
-                        try {
-                            LOGGER.warn("InvalidKeyException " + row + " Is deleted");
-                            final DeleteRequest deleterequest = new DeleteRequest(table, row.get(0).key());
-                            client.delete(deleterequest).joinUninterruptibly();
-                        } catch (Exception ex) {
-                            LOGGER.error(globalFunctions.stackTrace(ex));
-                        }
-                    } catch (Exception e) {
-                        LOGGER.warn(globalFunctions.stackTrace(e));
-                        LOGGER.warn("Can not add row to metrics " + row);
-                    }
-
-                }
-
-            }
-
             ExecutorService executor = Executors.newFixedThreadPool(24);
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    executor.submit(new AddMeta(row));
+                    executor.submit(new AddMeta(row, tsdb, client, table,this));
                 }
             }
         } catch (Exception ex) {
@@ -211,12 +181,10 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
         e.getTags().keySet().forEach((tagkey) -> {
             try {
                 if (!Tagkeys.containsKey(tagkey)) {
-                    Tagkeys.put(tagkey,1);
-                }
-                else
-                {
+                    Tagkeys.put(tagkey, 1);
+                } else {
                     Integer count = Tagkeys.get(tagkey);
-                    Tagkeys.put(tagkey,count++);
+                    Tagkeys.put(tagkey, count++);
                 }
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
@@ -227,18 +195,15 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
         e.getTags().entrySet().forEach((tagvalue) -> {
             try {
                 if (!Tagkeyv.containsKey(tagvalue.getValue().getValue())) {
-                    Tagkeyv.put(tagvalue.getValue().getValue(),1);
-                }
-                else
-                {
+                    Tagkeyv.put(tagvalue.getValue().getValue(), 1);
+                } else {
                     Integer count = Tagkeyv.get(tagvalue.getValue().getValue());
-                    Tagkeyv.put(tagvalue.getValue().getValue(),count++);
-                }                
-                
+                    Tagkeyv.put(tagvalue.getValue().getValue(), count++);
+                }
+
 //                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
 //                    Tagkeyv.add(tagvalue.getValue().getValue());
 //                }                
-                
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa" + e.getName() + " tags " + e.getTags());
