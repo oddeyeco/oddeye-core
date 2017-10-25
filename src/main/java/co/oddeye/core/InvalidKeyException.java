@@ -11,8 +11,10 @@ package co.oddeye.core;
  */
 public class InvalidKeyException extends Exception {
 
+    private static final long serialVersionUID = 465895478L;
+
     InvalidKeyException(String string) {
         super(string);
     }
-           
+
 }

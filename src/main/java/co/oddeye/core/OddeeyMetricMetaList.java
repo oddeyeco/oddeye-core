@@ -29,9 +29,10 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
+    private static final long serialVersionUID = 465895478L;
 
-    protected final HashMap<String, Integer> Tagkeys = new HashMap();
-    protected final HashMap<String, Integer> Tagkeyv = new HashMap();
+    protected final HashMap<String, Integer> Tagkeys = new HashMap<>();
+    protected final HashMap<String, Integer> Tagkeyv = new HashMap<>();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 

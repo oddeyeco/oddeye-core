@@ -5,7 +5,6 @@
  */
 package co.oddeye.core;
 
-import co.oddeye.core.OddeeyMetricMeta;
 import net.opentsdb.core.TSDB;
 import org.apache.commons.codec.binary.Hex;
 
@@ -15,15 +14,15 @@ import org.apache.commons.codec.binary.Hex;
  */
 public class MetricErrorMeta extends OddeeyMetricMeta {
 
-
+    private static final long serialVersionUID = 465895478L;
     private long timestamp;
     private Double value;
     private Double persent_weight;
     private Double persent_predict;
     private short weight;
 
-    private int RecurrenceTmp = 0;    
-    
+    private int RecurrenceTmp = 0;
+
     private int Recurrence1m = 0;
     private int RecurrenceLast1m = 0;
     private int Recurrence20m = 0;
@@ -32,8 +31,7 @@ public class MetricErrorMeta extends OddeeyMetricMeta {
     private int RecurrenceLast10m = 0;
     private int Recurrence30m = 0;
     private int RecurrenceLast30m = 0;
-    
-    
+
     public static final short MAX_VALUE = 16;
 
     public MetricErrorMeta(byte[] key, TSDB tsdb) throws Exception {
@@ -44,10 +42,10 @@ public class MetricErrorMeta extends OddeeyMetricMeta {
      * @return the date
      */
     public java.util.Date getDate() {
-        java.util.Date dateValue = new java.util.Date(timestamp*1000);
+        java.util.Date dateValue = new java.util.Date(timestamp * 1000);
         return dateValue;
-    }    
-    
+    }
+
     /**
      * @return the timestamp
      */
@@ -68,7 +66,6 @@ public class MetricErrorMeta extends OddeeyMetricMeta {
     public Double getValue() {
         return value;
     }
-
 
     /**
      * @param value the value to set
@@ -105,10 +102,9 @@ public class MetricErrorMeta extends OddeeyMetricMeta {
         this.weight = weight;
     }
 
-
     public String getKeyString() {
         return Hex.encodeHexString(getKey());
-    }    
+    }
 
     /**
      * @return the Recurrence1m
@@ -235,6 +231,7 @@ public class MetricErrorMeta extends OddeeyMetricMeta {
     public void setRecurrenceTmp(int RecurrenceTmp) {
         this.RecurrenceTmp = RecurrenceTmp;
     }
+
     /**
      * @return the persent_predict
      */

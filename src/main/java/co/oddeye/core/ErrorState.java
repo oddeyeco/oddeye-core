@@ -14,7 +14,6 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
@@ -24,8 +23,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class ErrorState implements Serializable, Comparable {
+public class ErrorState extends ErrorStateBase {
 
+    private static final long serialVersionUID = 465895478L;
     private int level = -255;
     private int flap = 0;
     private int prevlevel = -1;
@@ -116,6 +116,7 @@ public class ErrorState implements Serializable, Comparable {
         startvalue = ErrorData.get("startvalue").getAsDouble();
 
         java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>() {
+            private static final long serialVersionUID = 465895478L;
         }.getType();
         starttimes = globalFunctions.getGson().fromJson(ErrorData.get("starttimes"), type);
         endtimes = globalFunctions.getGson().fromJson(ErrorData.get("endtimes"), type);
@@ -274,7 +275,7 @@ public class ErrorState implements Serializable, Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
+    public int compareTo(ErrorStateBase o) {
         final ErrorState os = (ErrorState) o;
         return getTimestart() > os.getTimestart() ? 1 : -1;
     }

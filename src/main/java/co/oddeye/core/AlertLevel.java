@@ -15,7 +15,8 @@ import java.util.Map;
  * @author vahan
  */
 public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
-
+    private static final long serialVersionUID = 12345678L;
+    
     public final static Integer ALERT_END_ERROR = -1;
     public final static Integer ALERT_LEVEL_ALL = 0;
     public final static Integer ALERT_LEVEL_LOW = 1;
@@ -55,77 +56,49 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
 
     public AlertLevel(boolean usedefault) {
         if (usedefault) {
-
-//            new HashMap<String, String>() {
-//                {
-//                    put("a", "1");
-//                    put("b", "2");
-//                }
-//            }
-            this.put(ALERT_LEVEL_ALL, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 0.2);
-                    put(ALERT_PARAM_PECENT, 10.0);
-                    put(ALERT_PARAM_WEIGTH, 2.0);
-                    put(ALERT_PARAM_RECCOUNT, 4.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 10.0);
-                }
-            });
-            this.put(ALERT_LEVEL_LOW, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 1.0);
-                    put(ALERT_PARAM_PECENT, 20.0);
-                    put(ALERT_PARAM_WEIGTH, 8.0);
-                    put(ALERT_PARAM_RECCOUNT, 4.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 20.0);
-                }
-            });
-
-            this.put(ALERT_LEVEL_GUARDED, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 1.0);
-                    put(ALERT_PARAM_PECENT, 40.0);
-                    put(ALERT_PARAM_WEIGTH, 10.0);
-                    put(ALERT_PARAM_RECCOUNT, 4.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 50.0);
-                }
-            });
-
-            this.put(ALERT_LEVEL_ELEVATED, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 1.0);
-                    put(ALERT_PARAM_PECENT, 70.0);
-                    put(ALERT_PARAM_WEIGTH, 14.0);
-                    put(ALERT_PARAM_RECCOUNT, 5.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 80.0);
-                }
-            });            
-            this.put(ALERT_LEVEL_HIGH, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 1.0);
-                    put(ALERT_PARAM_PECENT, 90.0);
-                    put(ALERT_PARAM_WEIGTH, 15.0);
-                    put(ALERT_PARAM_RECCOUNT, 6.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 100.0);
-                }
-            });                        
-            this.put(ALERT_LEVEL_SEVERE, new HashMap<Integer, Double>() {
-                {
-                    put(ALERT_PARAM_VALUE, 1.0);
-                    put(ALERT_PARAM_PECENT, 120.0);
-                    put(ALERT_PARAM_WEIGTH, 16.0);
-                    put(ALERT_PARAM_RECCOUNT, 8.0);
-                    put(ALERT_PARAM_PREDICTPERSENT, 150.0);
-                }
-            }); 
-//            this.put(ALERT_LEVEL_SEVERE, ImmutableMap.<Integer, Double>builder()
-//                    .put(ALERT_PARAM_VALUE, 1.0)
-//                    .put(ALERT_PARAM_PECENT, 80.0)
-//                    .put(ALERT_PARAM_WEIGTH, 16.0)
-//                    .put(ALERT_PARAM_RECCOUNT, 4.0)
-//                    .put(ALERT_PARAM_PREDICTPERSENT, 80.0)
-//                    .build());
-//          this.get(this).get(this)
+            //FIX serializable class <anonymous co.oddeye.core.AlertLevel$1> has no definition of serialVersionUID 
+            HashMap<Integer, Double> defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 0.2);
+            defmap.put(ALERT_PARAM_PECENT, 10.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 2.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 4.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 10.0);
+            this.put(ALERT_LEVEL_ALL, defmap);
+            defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 1.0);
+            defmap.put(ALERT_PARAM_PECENT, 20.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 8.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 4.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 20.0);
+            this.put(ALERT_LEVEL_LOW, defmap);
+            defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 1.0);
+            defmap.put(ALERT_PARAM_PECENT, 40.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 10.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 4.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 50.0);
+            this.put(ALERT_LEVEL_GUARDED, defmap);
+            defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 1.0);
+            defmap.put(ALERT_PARAM_PECENT, 70.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 14.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 5.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 80.0);
+            this.put(ALERT_LEVEL_ELEVATED, defmap);
+            defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 1.0);
+            defmap.put(ALERT_PARAM_PECENT, 90.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 15.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 6.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 100.0);
+            this.put(ALERT_LEVEL_HIGH, defmap);
+            defmap = new HashMap<>();
+            defmap.put(ALERT_PARAM_VALUE, 1.0);
+            defmap.put(ALERT_PARAM_PECENT, 120.0);
+            defmap.put(ALERT_PARAM_WEIGTH, 16.0);
+            defmap.put(ALERT_PARAM_RECCOUNT, 8.0);
+            defmap.put(ALERT_PARAM_PREDICTPERSENT, 150.0);
+            this.put(ALERT_LEVEL_SEVERE, defmap);
         }
     }
 
@@ -151,7 +124,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         if (contains) {
             return ALERT_LEVELS[idx];
         }
-        return "NaN "+idx;
+        return "NaN " + idx;
     }
 
     public static Integer getPyName(String Name) {
@@ -161,7 +134,7 @@ public class AlertLevel extends HashMap<Integer, Map<Integer, Double>> {
         }
         if (Name.equals("ELEVATED")) {
             return ALERT_LEVEL_ELEVATED;
-        }        
+        }
         if (Name.equals("WARNING")) {
             return ALERT_LEVEL_HIGH;
         }

@@ -12,7 +12,7 @@ import com.google.gson.JsonElement;
  * @author vahan
  */
 public class OddeeysSpecialMetric extends OddeeyMetric {
-
+    private static final long serialVersionUID = 465895478L;
     private final String message;
     private final String status;
 

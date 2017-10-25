@@ -18,6 +18,7 @@ import org.hbase.async.KeyValue;
  * @author vahan
  */
 public class MetriccheckRule implements Serializable {
+    private static final long serialVersionUID = 465895478L;
 
     private Double min;
     private Double max;

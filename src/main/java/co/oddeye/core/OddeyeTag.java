@@ -17,6 +17,7 @@ import net.opentsdb.uid.UniqueId;
  * @author vahan
  */
 public class OddeyeTag implements Serializable{
+    private static final long serialVersionUID = 465895478L;
 
     private String key;
     private String value;

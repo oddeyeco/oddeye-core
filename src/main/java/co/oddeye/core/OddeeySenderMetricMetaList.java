@@ -10,7 +10,7 @@ package co.oddeye.core;
  * @author vahan
  */
 public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList {
-    
+    private static final long serialVersionUID = 465895478L;
     private String targetType;
     private String targetValue;
 

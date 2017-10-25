@@ -7,7 +7,6 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonElement;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
 import java.io.ByteArrayInputStream;
@@ -65,6 +64,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta>, Cloneable {
+    private static final long serialVersionUID = 127895478L;
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
@@ -78,8 +78,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(80, TimeUnit.MINUTES).build();
     private SimpleRegression regression = new SimpleRegression();
 
-    private ArrayList<Map<String, Object>> LevelValuesList = new ArrayList();
-    private ArrayList<Integer> LevelList = new ArrayList();
+    private ArrayList<Map<String, Object>> LevelValuesList = new ArrayList<>();
+    private ArrayList<Integer> LevelList = new ArrayList<>();
     private ErrorState ErrorState = new ErrorState();
     private short type;
 
@@ -92,40 +92,43 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
-    public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
-        Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
-
-        type = 1;
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            if (key.equals("tags")) {
-                Map<String, Object> t_value = (Map) value;
-                tags.clear();
-                t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
-                    if (!tag.getKey().toLowerCase().equals("alert_level")) {
-                        tags.put(tag.getKey(), new OddeyeTag(tag, tsdb));
-                        tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
-                    }
-                });
-            }
-            if (key.equals("type")) {
-                type = OddeeyMetricTypes.getIndexByName(String.valueOf(value));
-            }
-            if (key.equals("metric")) {
-                name = String.valueOf(value);
-                if (name == null) {
-                    throw new NullPointerException("Has not metriq name:" + json.toString());
-                }
-                try {
-                    nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, name);
-                } catch (NoSuchUniqueName e) {
-                    nameTSDBUID = tsdb.assignUid(key, name);
-                }
-
-            }
-        }
-    }
+//    public OddeeyMetricMeta(JsonElement json, TSDB tsdb) {
+//        Type listType = new TypeToken<Map<String, OddeyeTag>>() {
+//            private static final long serialVersionUID = 123854678L;
+//        }.getType();
+//        Map<String, Object> map = globalFunctions.getGson().fromJson(json, listType);
+//
+//        type = 1;
+//        for (Map.Entry<String, Object> entry : map.entrySet()) {
+//            String key = entry.getKey();
+//            Object value = entry.getValue();
+//            if (key.equals("tags")) {
+//                Map<String, Object> t_value = (Map<String, Object>) value;
+//                tags.clear();
+//                t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
+//                    if (!tag.getKey().toLowerCase().equals("alert_level")) {
+//                        tags.put(tag.getKey(), new OddeyeTag(tag, tsdb));
+//                        tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
+//                    }
+//                });
+//            }
+//            if (key.equals("type")) {
+//                type = OddeeyMetricTypes.getIndexByName(String.valueOf(value));
+//            }
+//            if (key.equals("metric")) {
+//                name = String.valueOf(value);
+//                if (name == null) {
+//                    throw new NullPointerException("Has not metriq name:" + json.toString());
+//                }
+//                try {
+//                    nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, name);
+//                } catch (NoSuchUniqueName e) {
+//                    nameTSDBUID = tsdb.assignUid(key, name);
+//                }
+//
+//            }
+//        }
+//    }
 
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
 
@@ -191,7 +194,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
-    @Deprecated
+    
     public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
         tagsFullFilter = "";
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
@@ -243,7 +246,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         tsquery.setEnd(Long.toString(enddate));
         final List<TagVFilter> filters = new ArrayList<>();
         final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
-        final Map<String, String> querytags = new HashMap<>();        
+        final Map<String, String> querytags = new HashMap<>();
         final Calendar CalendarObj = Calendar.getInstance();
 
         tags.entrySet().stream().forEach((tag) -> {
@@ -371,8 +374,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
-        Map<String, MetriccheckRule> rules = new TreeMap<>();        
-        Set<String> remrules = new HashSet<> ();
+        Map<String, MetriccheckRule> rules = new TreeMap<>();
+        Set<String> remrules = new HashSet<>();
         MetriccheckRule Rule;
 
         List<ScanFilter> list = new LinkedList<>();
@@ -568,37 +571,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             if (!tags.get("host").equals(o.getTags().get("host"))) {
                 return false;
             }
-            if (!tags.get("cluster").equals(o.getTags().get("cluster"))) {
-                return false;
-            }
-
-//            if (Arrays.equals(o.getNameTSDBUID(), nameTSDBUID) && (tags.equals(o.getTags()))) {
-//                return true;
-//            }
-//            if (((tags.get("cluster").equals(o.getTags().get("cluster")))
-//                    && Arrays.equals(o.getNameTSDBUID(), nameTSDBUID)
-//                    && (tags.get("host").equals(o.getTags().get("host")))
-//                    && (tags.get("UUID").equals(o.getTags().get("UUID")))) != (Arrays.equals(o.getNameTSDBUID(), nameTSDBUID) && (tags.equals(o.getTags())))) {
-//                System.out.println(name + "-" + tags);
-//            }
-//            if ((tags.get("cluster").equals(o.getTags().get("cluster")))
-//                    && Arrays.equals(o.getNameTSDBUID(), nameTSDBUID)
-//                    && (tags.get("host").equals(o.getTags().get("host")))
-//                    && (tags.get("UUID").equals(o.getTags().get("UUID")))) {
-//                return true;
-//            }
-            return true;
+            return tags.get("cluster").equals(o.getTags().get("cluster"));
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-//        int hash = 5;
-//        hash = 53 * hash + Objects.hashCode(this.name);
-//        hash = 53 * hash + Arrays.hashCode(this.tags.get("UUID").getValueTSDBUID());
-//        hash = 53 * hash + Arrays.hashCode(this.tags.get("host").getValueTSDBUID());
-//        hash = 53 * hash + Arrays.hashCode(this.getKey());
         byte[] key = this.getKey();
         if (key == null) {
             LOGGER.warn("this.getKey() is null");
@@ -633,8 +612,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public void setLasttime(long time) {
         lasttime = time;
     }
-    
-    
+
     /**
      * @return the regression
      */
@@ -777,7 +755,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             });
         } catch (Exception ex) {
-           LOGGER.error(globalFunctions.stackTrace(ex));
+            LOGGER.error(globalFunctions.stackTrace(ex));
         }
     }
 

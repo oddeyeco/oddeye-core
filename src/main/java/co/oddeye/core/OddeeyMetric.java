@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Cloneable {
+    private static final long serialVersionUID = 465895478L;
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
     private String name;
@@ -45,18 +48,26 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     public OddeeyMetric(JsonElement json) {
         type = 1;
         reaction = 0;
-        Map<String, Object> map = globalFunctions.getGson().fromJson(json, tags.getClass());
+        Type listType = new TypeToken<Map<String, Object>>() {
+            private static final long serialVersionUID = 123854678L;
+        }.getType();
+        Map<String, Object> map = globalFunctions.getGson().fromJson(json, listType);
         map.entrySet().stream().forEach(new Consumer<Map.Entry<String, Object>>() {
             @Override
             public void accept(Map.Entry<String, Object> entry) {
                 String key = entry.getKey();
                 Object ObValue = entry.getValue();
                 if (key.equals("tags")) {
-                    Map<String, Object> t_value = (Map) ObValue;
-                    tags.clear();
-                    t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
-                        tags.put(tag.getKey(), String.valueOf(tag.getValue()));
-                    });
+                    if (ObValue instanceof Map) {
+                        Map<?, ?> t_value = (Map<?, ?>) ObValue;
+                        tags.clear();
+                        for (Map.Entry<?, ?> tag : t_value.entrySet()) {
+                            tags.put((String) tag.getKey(), String.valueOf(tag.getValue()));
+                        }
+//                        t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
+//                            tags.put(tag.getKey(), String.valueOf(tag.getValue()));
+//                        });
+                    }
                 }
                 if (key.equals("metric")) {
                     name = String.valueOf(ObValue);
@@ -148,16 +159,15 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     public int getReaction() {
         return reaction;
     }
-    
-    public OddeeyMetric dublicate () throws IOException, ClassNotFoundException
-    {
+
+    public OddeeyMetric dublicate() throws IOException, ClassNotFoundException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ObjectOutputStream ous = new ObjectOutputStream(baos)) {
             ous.writeObject(this);
-        }          
+        }
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         ObjectInputStream ois = new ObjectInputStream(bais);
-        
-        return (OddeeyMetric)ois.readObject();
-    }    
+
+        return (OddeeyMetric) ois.readObject();
+    }
 }
