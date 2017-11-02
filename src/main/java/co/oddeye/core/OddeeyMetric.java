@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import static co.oddeye.core.OddeeyMetricMeta.LOGGER;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import java.io.ByteArrayInputStream;
@@ -16,8 +17,10 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,4 +173,9 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
 
         return (OddeeyMetric) ois.readObject();
     }
+    @Override
+    public int hashCode() {
+        int hash = Objects.hashCode(getName()+getTags().toString());
+        return hash;
+    }    
 }
