@@ -138,7 +138,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
-            ExecutorService executor = Executors.newFixedThreadPool(24);
+            ExecutorService executor = Executors.newCachedThreadPool();
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
                     executor.submit(new AddMeta(row, tsdb, client, table,this));
