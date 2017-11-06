@@ -9,6 +9,8 @@ package co.oddeye.core;
  *
  * @author vahan
  */
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -77,7 +79,7 @@ public class OddeyeHttpURLConnection {
     }
 
     // HTTP POST request
-    public static void sendPost(String url, String urlParameters) throws Exception {
+    public static String getPost(String url, String urlParameters) throws Exception {
 
 //        String url = "https://selfsolve.apple.com/wcResults.do";
         URL obj = new URL(url);
@@ -112,6 +114,11 @@ public class OddeyeHttpURLConnection {
         }
 
         //print result
-//        System.out.println(response.toString());
+        return response.toString();
+    }
+
+    public static JsonElement getPostJSON(String url, String urlParameters) throws Exception {
+        String result = getPost(url, urlParameters);
+        return globalFunctions.getJsonParser().parse(result);
     }
 }
