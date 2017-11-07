@@ -16,7 +16,7 @@ import org.hbase.async.KeyValue;
  *
  * @author vahan
  */
-    public class AddMeta implements Runnable {
+    public class AddMeta extends Thread {
 
         private final ArrayList<KeyValue> row;
         private final TSDB tsdb;
@@ -30,6 +30,7 @@ import org.hbase.async.KeyValue;
             client = o_client;
             table = o_table;
             list = o_list;
+            
                     
         }
 
