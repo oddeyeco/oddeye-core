@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
     private static final long serialVersionUID = 465895478L;
 
-    protected final HashMap<String, Integer> Tagkeys = new HashMap<>();
-    protected final HashMap<String, Integer> Tagkeyv = new HashMap<>();
+    protected final ConcurrentHashMap<String, Integer> Tagkeys = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<String, Integer> Tagkeyv = new ConcurrentHashMap<>();
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMetaList.class);
 
@@ -199,11 +199,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
                 } else {
                     Integer count = Tagkeyv.get(tagvalue.getValue().getValue());
                     Tagkeyv.put(tagvalue.getValue().getValue(), count++);
-                }
-
-//                if (!Tagkeyv.contains(tagvalue.getValue().getValue())) {
-//                    Tagkeyv.add(tagvalue.getValue().getValue());
-//                }                
+                }             
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa " + e.getName() + " tags " + e.getTags());
