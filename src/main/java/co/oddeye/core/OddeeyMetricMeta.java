@@ -778,6 +778,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public void update(OddeeyMetricMeta mtrscMeta) {
-        this.lasttime = mtrscMeta.getLasttime();
+        if (this.lasttime<mtrscMeta.getLasttime())
+        {
+            this.lasttime = mtrscMeta.getLasttime();
+        }
+        
     }
 }
