@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import net.opentsdb.core.Tags;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,8 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
                         Map<?, ?> t_value = (Map<?, ?>) ObValue;
                         tags.clear();
                         for (Map.Entry<?, ?> tag : t_value.entrySet()) {
+                            Tags.validateString("tagk", (String) tag.getKey());
+                            Tags.validateString("tagv", String.valueOf(tag.getValue()));
                             tags.put((String) tag.getKey(), String.valueOf(tag.getValue()));
                         }
 //                        t_value.entrySet().stream().forEach((Map.Entry<String, Object> tag) -> {
@@ -74,6 +77,7 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
                 }
                 if (key.equals("metric")) {
                     name = String.valueOf(ObValue);
+                    Tags.validateString("metric", name);
                     if (name == null) {
                         throw new NullPointerException("Has not metriq name:" + json.toString());
                     }
