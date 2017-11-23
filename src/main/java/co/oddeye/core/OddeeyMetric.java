@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import net.opentsdb.core.Tags;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
