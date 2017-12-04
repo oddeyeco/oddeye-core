@@ -9,10 +9,20 @@ package co.oddeye.core;
  *
  * @author vahan
  */
-public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList {
+public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements Cloneable {
+
     private static final long serialVersionUID = 465895478L;
     private String targetType;
     private String targetValue;
+
+    @Override
+    public OddeeySenderMetricMetaList clone() throws CloneNotSupportedException {
+        try {
+            return (OddeeySenderMetricMetaList) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }
 
     /**
      * @return the targetType
@@ -41,5 +51,5 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList {
     public void setTargetValue(String targetValue) {
         this.targetValue = targetValue;
     }
-    
+
 }
