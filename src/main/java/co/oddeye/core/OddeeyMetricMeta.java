@@ -245,7 +245,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         tsquery.setStart(Long.toString(startdate));
         tsquery.setEnd(Long.toString(enddate));
         final List<TagVFilter> filters = new ArrayList<>();
-        final List<TSSubQuery> sub_queries = new ArrayList<>();
+        final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
         final Map<String, String> querytags = new HashMap<>();
         final Calendar CalendarObj = Calendar.getInstance();
 
