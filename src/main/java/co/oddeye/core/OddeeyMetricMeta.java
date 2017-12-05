@@ -277,9 +277,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
             private final long enddate;
-            public  QueriesCB (long date)
+            private final long startdate;
+            public  QueriesCB (long e_date,long s_date)
             {
-                enddate = date;
+                enddate = e_date;
+                startdate = s_date;
             }
             
             @Override
@@ -295,7 +297,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         final SeekableView Datalist = datapoints.iterator();
                         while (Datalist.hasNext()) {
                             final DataPoint Point = Datalist.next();
-                            if (Point.timestamp()>enddate)
+                            if ((Point.timestamp()>enddate)||(Point.timestamp()<startdate))
                             {
                                 continue;
                             }
@@ -338,7 +340,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         try {
-            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate));
+            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate,startdate));
             return deferreds;
         } catch (Exception e) {
             throw new RuntimeException("Shouldn't be here", e);
