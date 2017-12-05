@@ -276,7 +276,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
-
+            private final long enddate;
+            public  QueriesCB (long date)
+            {
+                enddate = date;
+            }
+            
             @Override
             public Object call(final ArrayList<DataPoints[]> query_results)
                     throws Exception {
@@ -290,6 +295,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         final SeekableView Datalist = datapoints.iterator();
                         while (Datalist.hasNext()) {
                             final DataPoint Point = Datalist.next();
+                            if (Point.timestamp()>enddate)
+                            {
+                                continue;
+                            }
                             CalendarObj.setTimeInMillis(Point.timestamp());
                             time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
                             DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
@@ -329,7 +338,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         try {
-            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB());
+            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate));
             return deferreds;
         } catch (Exception e) {
             throw new RuntimeException("Shouldn't be here", e);
