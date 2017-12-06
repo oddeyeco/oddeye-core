@@ -356,7 +356,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public void clearCalcedRulesMap() {
-        RulesCalced.cleanUp();
+        RulesCalced.invalidateAll();
     }
 
     public MetriccheckRule getRule(final Calendar CalendarObj, final byte[] table, final HBaseClient client) throws Exception {
@@ -384,6 +384,74 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return Rule;
     }
 
+    public Map<String, MetriccheckRule> prepareRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
+        Map<String, MetriccheckRule> rules = new TreeMap<>();        
+        MetriccheckRule Rule;
+        List<ScanFilter> list = new LinkedList<>();
+
+//        for (int i = 0; i < days; i++) {
+//
+//        }      
+        int validcount = 0;
+        while ((rules.size() < days)) {
+            final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+            Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
+            if (Rule == null) {
+                Rule = new MetriccheckRule(getKey(), time_key);
+                list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
+            } else {
+                if (Rule.isIsValidRule()) {
+                    validcount++;
+                }
+            }
+            rules.put(Hex.encodeHexString(time_key), Rule);
+
+            if (validcount >= days) {
+                break;
+            }
+
+            CalendarObj.add(Calendar.DATE, -1);
+        }        
+        if (list.size() > 0) {
+            FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
+            GetRequest get = new GetRequest(table, getKey());
+            get.setFilter(filterlist);
+            ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
+            if (ruledata.isEmpty()) {
+                LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
+                RulesCache.putAll(rules);                
+            } else {
+                Collections.reverse(ruledata);
+                validcount = 0;
+                for (final KeyValue kv : ruledata) {
+                    if (kv.qualifier().length != 6) {
+                        continue;
+                    }
+                    Rule = new MetriccheckRule(getKey(), kv.qualifier());
+                    Rule.update(kv.value());
+
+                    LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
+                    if (Rule.isIsValidRule()) {
+                        validcount++;
+                    }
+                    if (validcount > days) {
+                        rules.remove(Hex.encodeHexString(kv.qualifier()));
+                    } else {
+                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);                        
+                    }
+                }
+            }            
+            try {
+                RulesCache.putAll(rules);
+            } catch (Exception e) {
+                LOGGER.info("has Emty Rules: ");
+            }
+
+        }
+        return rules;
+
+    }    
+    
     public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
         Map<String, MetriccheckRule> rules = new TreeMap<>();
         Set<String> remrules = new HashSet<>();

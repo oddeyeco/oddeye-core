@@ -148,7 +148,7 @@ public class MetriccheckRule implements Serializable {
 
     @Override
     public String toString() {
-        return "avg=" + String.format("%1$,.2f", avg) + " dev=" + String.format("%1$,.2f", dev) + " min=" + String.format("%1$,.2f", min) + " max=" + String.format("%1$,.2f", max);
+        return QualifierToCalendar(qualifier).getTime().toString()+ " avg=" + String.format("%1$,.2f", avg) + " dev=" + String.format("%1$,.2f", dev) + " min=" + String.format("%1$,.2f", min) + " max=" + String.format("%1$,.2f", max);
     }
 
     /**
