@@ -5,7 +5,6 @@
  */
 package co.oddeye.core;
 
-import static co.oddeye.core.OddeeyMetricMeta.LOGGER;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import java.io.ByteArrayInputStream;
