@@ -74,8 +74,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
 //    private final boolean Special;
-    private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(60, TimeUnit.MINUTES).build();
-    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(30, TimeUnit.MINUTES).build();
+    private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(150, TimeUnit.MINUTES).build();
+    private final Cache<String, MetriccheckRule> RulesCalced = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(80, TimeUnit.MINUTES).build();
     private SimpleRegression regression = new SimpleRegression();
 
     private ArrayList<Map<String, Object>> LevelValuesList = new ArrayList<>();
