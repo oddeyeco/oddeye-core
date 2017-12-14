@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.TimeZone;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
 import org.hbase.async.KeyValue;
@@ -36,7 +37,7 @@ public class MetriccheckRule implements Serializable {
         byte[] year = Arrays.copyOfRange(p_qualifier, 0, 2);
         byte[] day = Arrays.copyOfRange(p_qualifier, 2, 4);
         byte[] houre = Arrays.copyOfRange(p_qualifier, 4, 6);
-        Calendar cal= Calendar.getInstance();
+        Calendar cal= Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis(0);
         cal.set(Calendar.YEAR, ByteBuffer.wrap(year).getShort());
         cal.set(Calendar.DAY_OF_YEAR, ByteBuffer.wrap(day).getShort());
