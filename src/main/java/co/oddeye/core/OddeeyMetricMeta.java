@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -231,7 +232,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
         final TSQuery tsquery = new TSQuery();
 
-        final Calendar tmpCalendarObj = Calendar.getInstance();
+        final Calendar tmpCalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         tmpCalendarObj.setTimeInMillis(startdate);
         byte[] time_key;
         while (tmpCalendarObj.getTimeInMillis() < enddate) {
@@ -247,7 +248,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         final List<TagVFilter> filters = new ArrayList<>();
         final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
         final Map<String, String> querytags = new HashMap<>();
-        final Calendar CalendarObj = Calendar.getInstance();
+        final Calendar CalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
         tags.entrySet().stream().forEach((tag) -> {
             querytags.put(tag.getKey(), tag.getValue().getValue());

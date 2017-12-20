@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
@@ -203,7 +204,7 @@ public class CacheItemsList implements Cache<String, CacheItem> {
         byte[] family;
         CacheItem Item;
         final TSQuery tsquery = new TSQuery();
-        final Calendar StartCalendarObj = Calendar.getInstance();
+        final Calendar StartCalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         byte[] l_key = new byte[12];
         byte[] R_value = new byte[8];
 

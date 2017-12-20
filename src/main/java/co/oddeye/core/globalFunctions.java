@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.Calendar;
+import java.util.TimeZone;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.utils.Config;
 import org.hbase.async.HBaseClient;
@@ -31,7 +32,7 @@ public class globalFunctions {
     private static TSDB secindarytsdb = null; 
     private static final Gson gson = new Gson();
     private static final JsonParser PARSER = new JsonParser();
-    private static final Calendar calendar = Calendar.getInstance();
+    private static final Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     
     static public String stackTrace(Exception cause) {
         if (cause == null) {
