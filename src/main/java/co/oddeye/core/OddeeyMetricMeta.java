@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMeta>, Cloneable {
+
     private static final long serialVersionUID = 127895478L;
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
@@ -130,7 +131,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //            }
 //        }
 //    }
-
     public OddeeyMetricMeta(ArrayList<KeyValue> row, TSDB tsdb, boolean loadAllRules) throws Exception {
 
         final byte[] key = row.get(0).key();
@@ -195,7 +195,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
     }
 
-    
     public OddeeyMetricMeta(byte[] key, TSDB tsdb) throws Exception {
         tagsFullFilter = "";
         nameTSDBUID = Arrays.copyOfRange(key, 0, 3);
@@ -264,82 +263,66 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         tsquery.validateAndSetQuery();
         Query[] tsdbqueries = tsquery.buildQueries(tsdb);
 
-        final int nqueries = tsdbqueries.length;
-        final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
-
+        final int nqueries = tsdbqueries.length;        
         for (int nq = 0; nq < nqueries; nq++) {
-            deferreds.add(tsdbqueries[nq].runAsync());
+            long sttime = System.currentTimeMillis();
+            DataPoints[] query_results = tsdbqueries[nq].run();
+            if (LOGGER.isInfoEnabled()) {
+                long time = System.currentTimeMillis() - sttime;
+                LOGGER.info("TSDB get " + query_results.length + " points from " + time + " ms");
 
-        }
-
-        class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
-            private final long enddate;
-            private final long startdate;
-            public  QueriesCB (long e_date,long s_date)
-            {
-                enddate = e_date;
-                startdate = s_date;
+                for (final DataPoints datapoints : query_results) {
+                    LOGGER.info("TSDB get " + datapoints.size() + " points from " + time + " ms");
+                }
             }
-            
-            @Override
-            public Object call(final ArrayList<DataPoints[]> query_results)
-                    throws Exception {
-                double R_value;
-                byte[] time_key;
-                MetriccheckRule RuleItem;
+
+            double R_value;
+//            byte[] time_key;
+            MetriccheckRule RuleItem;
 //                DescriptiveStatistics stats = new DescriptiveStatistics();
-                Map<String, DescriptiveStatistics> statslist = new HashMap<>();
-                for (DataPoints[] series : query_results) {
-                    for (final DataPoints datapoints : series) {
-                        final SeekableView Datalist = datapoints.iterator();
-                        while (Datalist.hasNext()) {
-                            final DataPoint Point = Datalist.next();
-                            if ((Point.timestamp()>enddate)||(Point.timestamp()<startdate))
-                            {
-                                continue;
-                            }
-                            CalendarObj.setTimeInMillis(Point.timestamp());
-                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
-                            DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
-                            if (stats == null) {
-                                stats = new DescriptiveStatistics();
-                                statslist.put(Hex.encodeHexString(time_key), stats);
-                            }
-                            R_value = Point.doubleValue();
-                            stats.addValue(R_value);
-                            statslist.replace(Hex.encodeHexString(time_key), stats);
-                        }
+            Map<String, DescriptiveStatistics> statslist = new HashMap<>();
+
+            for (final DataPoints datapoints : query_results) {
+                final SeekableView Datalist = datapoints.iterator();
+                while (Datalist.hasNext()) {
+                    final DataPoint Point = Datalist.next();
+                    if ((Point.timestamp() > enddate) || (Point.timestamp() < startdate)) {
+                        continue;
                     }
-                }
-
-                for (final Map.Entry<String, DescriptiveStatistics> stats : statslist.entrySet()) {
-                    final String s_time_key = stats.getKey();
-                    RuleItem = RulesCache.getIfPresent(s_time_key);
-                    time_key = Hex.decodeHex(s_time_key.toCharArray());
-                    if (RuleItem == null) {
-
-                        RuleItem = new MetriccheckRule(time_key);
+                    CalendarObj.setTimeInMillis(Point.timestamp());
+                    time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+                    DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
+                    if (stats == null) {
+                        stats = new DescriptiveStatistics();
+                        statslist.put(Hex.encodeHexString(time_key), stats);
                     }
-
-                    RuleItem.update("avg", stats.getValue().getMean());
-                    RuleItem.update("dev", stats.getValue().getStandardDeviation());
-                    RuleItem.update("min", stats.getValue().getMin());
-                    RuleItem.update("max", stats.getValue().getMax());
-                    RuleItem.setHasNotData(false);
-                    RulesCalced.put(s_time_key, RuleItem);
-                    RulesCache.put(s_time_key, RuleItem);
+                    R_value = Point.doubleValue();
+                    stats.addValue(R_value);
+                    statslist.replace(Hex.encodeHexString(time_key), stats);
                 }
-                return null;
             }
+
+            for (final Map.Entry<String, DescriptiveStatistics> stats : statslist.entrySet()) {
+                final String s_time_key = stats.getKey();
+                RuleItem = RulesCache.getIfPresent(s_time_key);
+                time_key = Hex.decodeHex(s_time_key.toCharArray());
+                if (RuleItem == null) {
+
+                    RuleItem = new MetriccheckRule(time_key);
+                }
+
+                RuleItem.update("avg", stats.getValue().getMean());
+                RuleItem.update("dev", stats.getValue().getStandardDeviation());
+                RuleItem.update("min", stats.getValue().getMin());
+                RuleItem.update("max", stats.getValue().getMax());
+                RuleItem.setHasNotData(false);
+                RulesCalced.put(s_time_key, RuleItem);
+                RulesCache.put(s_time_key, RuleItem);
+            }
+
         }
-        try {
-            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate,startdate)).join();
-//            return deferreds;
-        } catch (Exception e) {
-            throw new RuntimeException("Shouldn't be here", e);
-        }
-    }    
-    
+    }
+
     @Deprecated
     public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
         final TSQuery tsquery = new TSQuery();
@@ -385,14 +368,15 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
+
             private final long enddate;
             private final long startdate;
-            public  QueriesCB (long e_date,long s_date)
-            {
+
+            public QueriesCB(long e_date, long s_date) {
                 enddate = e_date;
                 startdate = s_date;
             }
-            
+
             @Override
             public Object call(final ArrayList<DataPoints[]> query_results)
                     throws Exception {
@@ -406,8 +390,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         final SeekableView Datalist = datapoints.iterator();
                         while (Datalist.hasNext()) {
                             final DataPoint Point = Datalist.next();
-                            if ((Point.timestamp()>enddate)||(Point.timestamp()<startdate))
-                            {
+                            if ((Point.timestamp() > enddate) || (Point.timestamp() < startdate)) {
                                 continue;
                             }
                             CalendarObj.setTimeInMillis(Point.timestamp());
@@ -445,7 +428,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         try {
-            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate,startdate));
+            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate, startdate));
             return deferreds;
         } catch (Exception e) {
             throw new RuntimeException("Shouldn't be here", e);
@@ -490,7 +473,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public Map<String, MetriccheckRule> prepareRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
-        Map<String, MetriccheckRule> rules = new TreeMap<>();        
+        Map<String, MetriccheckRule> rules = new TreeMap<>();
         MetriccheckRule Rule;
         List<ScanFilter> list = new LinkedList<>();
 
@@ -516,7 +499,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
 
             CalendarObj.add(Calendar.DATE, -1);
-        }        
+        }
         if (list.size() > 0) {
             FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
             GetRequest get = new GetRequest(table, getKey());
@@ -524,7 +507,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
                 LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
-                RulesCache.putAll(rules);                
+                RulesCache.putAll(rules);
             } else {
                 Collections.reverse(ruledata);
                 validcount = 0;
@@ -535,17 +518,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     Rule = new MetriccheckRule(getKey(), kv.qualifier());
                     Rule.update(kv.value());
 
-                    LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
+                    LOGGER.info("get Rule from Database: " + name + "by " + Rule.getTime().getTime());
                     if (Rule.isIsValidRule()) {
                         validcount++;
                     }
                     if (validcount > days) {
                         rules.remove(Hex.encodeHexString(kv.qualifier()));
                     } else {
-                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);                        
+                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
                     }
                 }
-            }            
+            }
             try {
                 RulesCache.putAll(rules);
             } catch (Exception e) {
@@ -555,8 +538,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         }
         return rules;
 
-    }    
-    
+    }
+
     public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
         Map<String, MetriccheckRule> rules = new TreeMap<>();
         Set<String> remrules = new HashSet<>();
@@ -962,10 +945,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     }
 
     public void update(OddeeyMetricMeta mtrscMeta) {
-        if (this.lasttime<mtrscMeta.getLasttime())
-        {
+        if (this.lasttime < mtrscMeta.getLasttime()) {
             this.lasttime = mtrscMeta.getLasttime();
         }
-        
+
     }
 }
