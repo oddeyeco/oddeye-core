@@ -229,7 +229,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         lasttime = metric.getTimestamp();
     }
 
-    public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
+    public void CalculateRulesApachMathSinq(long startdate, long enddate, TSDB tsdb) throws Exception {
         final TSQuery tsquery = new TSQuery();
 
         final Calendar tmpCalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -253,15 +253,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         tags.entrySet().stream().forEach((tag) -> {
             querytags.put(tag.getKey(), tag.getValue().getValue());
         });
-
-//        querytags.put("UUID", Metric.getAsJsonObject().get("tags").getAsJsonObject().get("UUID").getAsString());
         TagVFilter.mapToFilters(querytags, filters, true);
         final TSSubQuery sub_query = new TSSubQuery();
         sub_query.setMetric(name);
         sub_query.setAggregator("none");
         sub_query.setFilters(filters);
-//            sub_query.setDownsample(dsrule);
-//            sub_query.setIndex(0);
         sub_queries.add(sub_query);
 
         tsquery.setQueries(sub_queries);
@@ -325,8 +321,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                         RuleItem = new MetriccheckRule(time_key);
                     }
 
-//                    double GeometricMean = stats.getValue().getGeometricMean();
-//                    OddeeyMetricMeta.LOGGER.warn("Count:" + stats.getValue().getN());
                     RuleItem.update("avg", stats.getValue().getMean());
                     RuleItem.update("dev", stats.getValue().getStandardDeviation());
                     RuleItem.update("min", stats.getValue().getMin());
@@ -334,9 +328,119 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     RuleItem.setHasNotData(false);
                     RulesCalced.put(s_time_key, RuleItem);
                     RulesCache.put(s_time_key, RuleItem);
-//                    double aa = stats.getValue().getStandardDeviation();
+                }
+                return null;
+            }
+        }
+        try {
+            Deferred.groupInOrder(deferreds).addCallback(new QueriesCB(enddate,startdate)).join();
+//            return deferreds;
+        } catch (Exception e) {
+            throw new RuntimeException("Shouldn't be here", e);
+        }
+    }    
+    
+    @Deprecated
+    public ArrayList<Deferred<DataPoints[]>> CalculateRulesApachMath(long startdate, long enddate, TSDB tsdb) throws Exception {
+        final TSQuery tsquery = new TSQuery();
+
+        final Calendar tmpCalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        tmpCalendarObj.setTimeInMillis(startdate);
+        byte[] time_key;
+        while (tmpCalendarObj.getTimeInMillis() < enddate) {
+            time_key = ByteBuffer.allocate(6).putShort((short) tmpCalendarObj.get(Calendar.YEAR)).putShort((short) tmpCalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) tmpCalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+            final MetriccheckRule RuleItem = new MetriccheckRule(getKey(), time_key);
+            RuleItem.setHasNotData(true);
+            RulesCache.put(Hex.encodeHexString(time_key), RuleItem);
+            tmpCalendarObj.add(Calendar.HOUR, 1);
+        }
+
+        tsquery.setStart(Long.toString(startdate));
+        tsquery.setEnd(Long.toString(enddate));
+        final List<TagVFilter> filters = new ArrayList<>();
+        final ArrayList<TSSubQuery> sub_queries = new ArrayList<>();
+        final Map<String, String> querytags = new HashMap<>();
+        final Calendar CalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+        tags.entrySet().stream().forEach((tag) -> {
+            querytags.put(tag.getKey(), tag.getValue().getValue());
+        });
+        TagVFilter.mapToFilters(querytags, filters, true);
+        final TSSubQuery sub_query = new TSSubQuery();
+        sub_query.setMetric(name);
+        sub_query.setAggregator("none");
+        sub_query.setFilters(filters);
+        sub_queries.add(sub_query);
+
+        tsquery.setQueries(sub_queries);
+        tsquery.validateAndSetQuery();
+        Query[] tsdbqueries = tsquery.buildQueries(tsdb);
+
+        final int nqueries = tsdbqueries.length;
+        final ArrayList<Deferred<DataPoints[]>> deferreds = new ArrayList<>(nqueries);
+
+        for (int nq = 0; nq < nqueries; nq++) {
+            deferreds.add(tsdbqueries[nq].runAsync());
+
+        }
+
+        class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
+            private final long enddate;
+            private final long startdate;
+            public  QueriesCB (long e_date,long s_date)
+            {
+                enddate = e_date;
+                startdate = s_date;
+            }
+            
+            @Override
+            public Object call(final ArrayList<DataPoints[]> query_results)
+                    throws Exception {
+                double R_value;
+                byte[] time_key;
+                MetriccheckRule RuleItem;
+//                DescriptiveStatistics stats = new DescriptiveStatistics();
+                Map<String, DescriptiveStatistics> statslist = new HashMap<>();
+                for (DataPoints[] series : query_results) {
+                    for (final DataPoints datapoints : series) {
+                        final SeekableView Datalist = datapoints.iterator();
+                        while (Datalist.hasNext()) {
+                            final DataPoint Point = Datalist.next();
+                            if ((Point.timestamp()>enddate)||(Point.timestamp()<startdate))
+                            {
+                                continue;
+                            }
+                            CalendarObj.setTimeInMillis(Point.timestamp());
+                            time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+                            DescriptiveStatistics stats = statslist.get(Hex.encodeHexString(time_key));
+                            if (stats == null) {
+                                stats = new DescriptiveStatistics();
+                                statslist.put(Hex.encodeHexString(time_key), stats);
+                            }
+                            R_value = Point.doubleValue();
+                            stats.addValue(R_value);
+                            statslist.replace(Hex.encodeHexString(time_key), stats);
+                        }
+                    }
                 }
 
+                for (final Map.Entry<String, DescriptiveStatistics> stats : statslist.entrySet()) {
+                    final String s_time_key = stats.getKey();
+                    RuleItem = RulesCache.getIfPresent(s_time_key);
+                    time_key = Hex.decodeHex(s_time_key.toCharArray());
+                    if (RuleItem == null) {
+
+                        RuleItem = new MetriccheckRule(time_key);
+                    }
+
+                    RuleItem.update("avg", stats.getValue().getMean());
+                    RuleItem.update("dev", stats.getValue().getStandardDeviation());
+                    RuleItem.update("min", stats.getValue().getMin());
+                    RuleItem.update("max", stats.getValue().getMax());
+                    RuleItem.setHasNotData(false);
+                    RulesCalced.put(s_time_key, RuleItem);
+                    RulesCache.put(s_time_key, RuleItem);
+                }
                 return null;
             }
         }
