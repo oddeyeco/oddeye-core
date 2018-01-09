@@ -78,6 +78,43 @@ public class OddeyeHttpURLConnection {
         executor.submit(new GetRequest(new URL(url)));
     }
 
+    public static String getGet(String url) throws Exception {
+
+//        String url = "https://selfsolve.apple.com/wcResults.do";
+        URL obj = new URL(url);
+        
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        //add reuqest header
+        con.setRequestMethod("GET");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+
+        con.setDoOutput(true);
+        int responseCode = con.getResponseCode();
+//        System.out.println("\nSending 'POST' request to URL : " + url);
+//        System.out.println("Post parameters : " + urlParameters);
+//        System.out.println("Response Code : " + responseCode);
+
+        StringBuffer response;
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()))) {
+            String inputLine;
+            response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        }
+
+        //print result
+        return response.toString();
+    }
+
+    public static JsonElement getGetJSON(String url) throws Exception {
+        String result = getGet(url);
+        return globalFunctions.getJsonParser().parse(result);
+    }
+
     // HTTP POST request
     public static String getPost(String url, String urlParameters) throws Exception {
 
