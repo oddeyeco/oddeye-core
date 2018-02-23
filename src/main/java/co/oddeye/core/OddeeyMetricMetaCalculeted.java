@@ -70,6 +70,10 @@ public class OddeeyMetricMetaCalculeted extends OddeeyMetricMeta implements Seri
         super(metric, tsdb);
     }
 
+    public OddeeyMetricMetaCalculeted(OddeeyMetricMeta mm) {
+        super(mm);
+    }
+
     public void CalculateRulesApachMathSinq(long startdate, long enddate, TSDB tsdb) throws Exception {        
         final TSQuery tsquery = new TSQuery();
         final Calendar tmpCalendarObj = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

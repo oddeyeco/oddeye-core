@@ -7,8 +7,6 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.stumbleupon.async.Callback;
-import com.stumbleupon.async.Deferred;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,37 +15,26 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import net.opentsdb.core.DataPoint;
-import net.opentsdb.core.DataPoints;
-
-import net.opentsdb.core.Query;
-import net.opentsdb.core.SeekableView;
 import net.opentsdb.core.TSDB;
-import net.opentsdb.core.TSQuery;
-import net.opentsdb.core.TSSubQuery;
-
-import net.opentsdb.query.filter.TagVFilter;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hbase.async.BinaryComparator;
 import org.hbase.async.CompareFilter;
@@ -71,6 +58,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetricMeta.class);
     private String name;
     private long lasttime;
+    private long inittime = System.currentTimeMillis();
+    private long livedays;
 
     private byte[] nameTSDBUID;
     private final Map<String, OddeyeTag> tags = new TreeMap<>();
@@ -167,6 +156,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        }
         type = 1;
         for (KeyValue cell : row) {
+            if (Arrays.equals(cell.qualifier(), "n".getBytes())) {
+                inittime = cell.timestamp();
+            }            
             if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
@@ -227,7 +219,29 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         type = metric.getType();
         lasttime = metric.getTimestamp();
     }
+    public OddeeyMetricMeta (OddeeyMetricMeta source) {
+        Field[] fieldsSource = source.getClass().getDeclaredFields();
+        Field[] fieldsTarget = this.getClass().getSuperclass().getDeclaredFields();
 
+        for (Field fieldTarget : fieldsTarget)
+        {
+            for (Field fieldSource : fieldsSource)
+            {
+                if (fieldTarget.getName().equals(fieldSource.getName()))
+                {
+                    try
+                    {
+                        fieldTarget.set(this, fieldSource.get(source));
+                    }
+                    catch (SecurityException | IllegalArgumentException | IllegalAccessException e)
+                    {
+                        LOGGER.error(e.toString());
+                    }
+                    break;
+                }
+            }
+        }
+    }
 //    public void CalculateRulesApachMathSinq(long startdate, long enddate, TSDB tsdb) throws Exception {
 //        final TSQuery tsquery = new TSQuery();
 //
@@ -946,5 +960,22 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public Cache<String, MetriccheckRule> getRulesCache() {
         return RulesCache;
+    }
+
+    /**
+     * @return the inittime
+     */
+    public long getInittime() {
+        return inittime;
+    }
+    public void setInittime(Long time) {
+        inittime = time;
+    }    
+
+    /**
+     * @return the livedays
+     */
+    public int getLivedays() {
+        return Math.toIntExact ((lasttime-inittime)/(1000*60*60*24));
     }
 }
