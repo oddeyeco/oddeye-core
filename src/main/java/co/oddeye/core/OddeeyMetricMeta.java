@@ -158,7 +158,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "n".getBytes())) {
                 inittime = cell.timestamp();
-            }            
+            }
             if (Arrays.equals(cell.qualifier(), "timestamp".getBytes())) {
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
@@ -219,22 +219,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         type = metric.getType();
         lasttime = metric.getTimestamp();
     }
-    public OddeeyMetricMeta (OddeeyMetricMeta source) {
+
+    public OddeeyMetricMeta(OddeeyMetricMeta source) {
         Field[] fieldsSource = source.getClass().getDeclaredFields();
         Field[] fieldsTarget = this.getClass().getSuperclass().getDeclaredFields();
 
-        for (Field fieldTarget : fieldsTarget)
-        {
-            for (Field fieldSource : fieldsSource)
-            {
-                if (fieldTarget.getName().equals(fieldSource.getName()))
-                {
-                    try
-                    {
+        for (Field fieldTarget : fieldsTarget) {
+            for (Field fieldSource : fieldsSource) {
+                if (fieldTarget.getName().equals(fieldSource.getName())) {
+                    try {
                         fieldTarget.set(this, fieldSource.get(source));
-                    }
-                    catch (SecurityException | IllegalArgumentException | IllegalAccessException e)
-                    {
+                    } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
                         LOGGER.error(e.toString());
                     }
                     break;
@@ -450,15 +445,12 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //    public ConcurrentMap<String, MetriccheckRule> getRulesMap() {
 //        return RulesCache.asMap();
 //    }
-
 //    public ConcurrentMap<String, MetriccheckRule> getCalcedRulesMap() {
 //        return RulesCalced.asMap();
 //    }
-
 //    public void clearCalcedRulesMap() {
 //        RulesCalced.invalidateAll();
 //    }
-
 //    public MetriccheckRule getRule(final Calendar CalendarObj, final byte[] table, final HBaseClient client) throws Exception {
 //        final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
 //        MetriccheckRule Rule = RulesCache.getIfPresent(Hex.encodeHexString(time_key));
@@ -483,7 +475,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        }
 //        return Rule;
 //    }
-
 //    public Map<String, MetriccheckRule> prepareRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
 //        Map<String, MetriccheckRule> rules = new TreeMap<>();
 //        MetriccheckRule Rule;
@@ -581,7 +572,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             get.setFilter(filterlist);
             ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
-                LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags.get("host").getValue() + " filter " + list);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags + " for " + CalendarObj.getTime() + " " + days + " days");
+                }
                 getRulesCache().putAll(rules);
                 rules.clear();
             } else {
@@ -593,8 +586,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     }
                     Rule = new MetriccheckRule(getKey(), kv.qualifier());
                     Rule.update(kv.value());
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("get Rule from Database: " + name + " by " + MetriccheckRule.QualifierToCalendar(kv.qualifier()).getTime());
+                    }
 
-                    LOGGER.info("get Rule from Database: " + name + "by " + CalendarObj.getTime());
                     if (Rule.isIsValidRule()) {
                         validcount++;
                     }
@@ -968,14 +963,15 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public long getInittime() {
         return inittime;
     }
+
     public void setInittime(Long time) {
         inittime = time;
-    }    
+    }
 
     /**
      * @return the livedays
      */
     public int getLivedays() {
-        return Math.toIntExact ((lasttime-inittime)/(1000*60*60*24));
+        return Math.toIntExact((lasttime - inittime) / (1000 * 60 * 60 * 24));
     }
 }
