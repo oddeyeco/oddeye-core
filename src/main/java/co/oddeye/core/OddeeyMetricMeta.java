@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
@@ -62,7 +63,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private long livedays;
 
     private byte[] nameTSDBUID;
-    private final Map<String, OddeyeTag> tags = new TreeMap<>();
+    private Map<String, OddeyeTag> tags = new TreeMap<>();
     private String tagsFullFilter = "";
 //    private final boolean Special;
     private final Cache<String, MetriccheckRule> RulesCache = CacheBuilder.newBuilder().concurrencyLevel(4).expireAfterAccess(60, TimeUnit.MINUTES).build();
@@ -73,6 +74,32 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private ArrayList<Integer> LevelList = new ArrayList<>();
     private ErrorState ErrorState = new ErrorState();
     private short type;
+
+    public OddeeyMetricMeta(String metricName, Map<String, String> _tags,TSDB tsdb) {
+        tagsFullFilter = "";
+        nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, metricName);
+        int i = 3;
+//        while (i < key.length) {
+//            byte[] tgkey = Arrays.copyOfRange(key, i, i + 3);
+//            byte[] tgval = Arrays.copyOfRange(key, i + 3, i + 6);
+//            OddeyeTag tag = new OddeyeTag(tgkey, tgval, tsdb);
+//            tags.put(tag.getKey(), tag);
+//            tagsFullFilter = tagsFullFilter + tag.getKey() + "=" + tag.getValue() + ";";
+//            i = i + 6;
+//        }
+        for (Map.Entry<String, String> tag :_tags.entrySet())
+        {
+            try {
+                OddeyeTag ODtag = new OddeyeTag(tag.getKey(), tag.getValue(), tsdb);
+                tags.put(tag.getKey(), ODtag);
+                tagsFullFilter = tagsFullFilter + ODtag.getKey() + "=" + ODtag.getValue() + ";";
+            } catch (Exception ex) {
+                LOGGER.error(ex.toString());
+            }
+        }
+        name = metricName;
+        type = 1;
+    }
 
     @Override
     public OddeeyMetricMeta clone() throws CloneNotSupportedException {
@@ -228,7 +255,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             for (Field fieldSource : fieldsSource) {
                 if (fieldTarget.getName().equals(fieldSource.getName())) {
                     try {
-                        fieldTarget.set(this, fieldSource.get(source));
+                        if ((!java.lang.reflect.Modifier.isStatic(fieldTarget.getModifiers()))
+                                &&(!java.lang.reflect.Modifier.isFinal(fieldTarget.getModifiers()))){
+                            fieldTarget.set(this, fieldSource.get(source));    
+                        }                                            
                     } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
                         LOGGER.error(e.toString());
                     }

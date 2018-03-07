@@ -70,8 +70,8 @@ public class OddeeyMetricMetaCalculeted extends OddeeyMetricMeta implements Seri
         super(metric, tsdb);
     }
 
-    public OddeeyMetricMetaCalculeted(OddeeyMetricMeta mm) {
-        super(mm);
+    public OddeeyMetricMetaCalculeted(OddeeyMetricMeta source) {
+        super(source);      
     }
 
     public void CalculateRulesApachMathSinq(long startdate, long enddate, TSDB tsdb) throws Exception {        
@@ -207,7 +207,6 @@ public class OddeeyMetricMetaCalculeted extends OddeeyMetricMeta implements Seri
 
         for (int nq = 0; nq < nqueries; nq++) {
             deferreds.add(tsdbqueries[nq].runAsync());
-
         }
 
         class QueriesCB implements Callback<Object, ArrayList<DataPoints[]>> {
@@ -338,9 +337,9 @@ public class OddeeyMetricMetaCalculeted extends OddeeyMetricMeta implements Seri
             FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
             GetRequest get = new GetRequest(table, getKey());
             get.setFilter(filterlist);
-            ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
+            ArrayList<KeyValue> ruledata = client.get(get).join();
             if (ruledata.isEmpty()) {
-                LOGGER.info("Rule not exist in Database by " + " for " + getName() + " " + getTags().get("host").getValue() + " filter " + list);
+                LOGGER.info("Rule not exist in Database by " + " for " + getName() + " " + getTags() + " filter " + list);
                 getRulesCache().putAll(rules);
             } else {
                 Collections.reverse(ruledata);
@@ -370,6 +369,35 @@ public class OddeeyMetricMetaCalculeted extends OddeeyMetricMeta implements Seri
             }
 
         }
+        return rules;
+
+    }
+    
+    public Map<String, MetriccheckRule> prePrepareRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
+        Map<String, MetriccheckRule> rules = new TreeMap<>();
+        MetriccheckRule Rule;
+        List<ScanFilter> list = new LinkedList<>();
+        int validcount = 0;
+        while ((rules.size() < days)) {
+            final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
+            Rule = getRulesCache().getIfPresent(Hex.encodeHexString(time_key));
+            if (Rule == null) {
+                Rule = new MetriccheckRule(getKey(), time_key);
+                list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
+            } else {
+                if (Rule.isIsValidRule()) {
+                    validcount++;
+                }
+            }
+            rules.put(Hex.encodeHexString(time_key), Rule);
+
+            if (validcount >= days) {
+                break;
+            }
+
+            CalendarObj.add(Calendar.DATE, -1);
+        }
+        getRulesCache().putAll(rules);
         return rules;
 
     }
