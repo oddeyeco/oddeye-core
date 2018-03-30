@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import net.opentsdb.core.TSDB;
 import net.opentsdb.query.QueryUtil;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
+
     private static final long serialVersionUID = 465895478L;
 
     protected final ConcurrentHashMap<String, Integer> Tagkeys = new ConcurrentHashMap<>();
@@ -141,9 +143,37 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             ExecutorService executor = Executors.newCachedThreadPool();
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
-                    executor.submit(new AddMeta(row, tsdb, client, table,this));
+                    executor.submit(new AddMeta(row, tsdb, client, table, this));
                 }
             }
+        } catch (Exception ex) {
+            LOGGER.warn(globalFunctions.stackTrace(ex));
+        }
+
+    }
+
+    public OddeeyMetricMetaList(TSDB tsdb, byte[] table, int maxThread) {
+        super();
+
+        try {
+            final HBaseClient client = tsdb.getClient();
+
+            Scanner scanner = client.newScanner(table);
+            scanner.setServerBlockCache(false);
+            scanner.setMaxNumRows(10000);
+            scanner.setFamily("d".getBytes());
+            scanner.setQualifier("n".getBytes());
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
+            scanner.setQualifiers(Qualifiers);
+            ArrayList<ArrayList<KeyValue>> rows;
+            ExecutorService executor = Executors.newFixedThreadPool(maxThread);
+            while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
+                for (final ArrayList<KeyValue> row : rows) {
+                    executor.submit(new AddMeta(row, tsdb, client, table, this));
+                }
+            }
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         } catch (Exception ex) {
             LOGGER.warn(globalFunctions.stackTrace(ex));
         }
@@ -199,7 +229,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
                 } else {
                     Integer count = Tagkeyv.get(tagvalue.getValue().getValue());
                     Tagkeyv.put(tagvalue.getValue().getValue(), count++);
-                }             
+                }
             } catch (Exception ex) {
                 OddeeyMetricMeta.LOGGER.warn(globalFunctions.stackTrace(ex));
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa " + e.getName() + " tags " + e.getTags());
