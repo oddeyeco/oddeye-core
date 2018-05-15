@@ -223,10 +223,14 @@ public class ErrorState extends ErrorStateBase {
             state = ALERT_STATE_UP;//Up
             starttimes.put(level, timestamp);
         }
-
         if ((level == -1) && (this.level != -1)) {
-            state = ALERT_STATE_END;//End error
-            endtimes.put(this.level, timestamp);
+            if ((level == -1) && (this.level == -255)) {
+                state = ALERT_STATE_CONT;
+            } else {
+                state = ALERT_STATE_END;//End error
+                endtimes.put(this.level, timestamp);
+            }
+
         }
         this.level = level;
         time = timestamp;
@@ -300,5 +304,12 @@ public class ErrorState extends ErrorStateBase {
     public int getFlap() {
         return flap;
     }
-
+    @Override
+    public ErrorState clone() throws CloneNotSupportedException {
+        try {
+            return (ErrorState) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new InternalError();
+        }
+    }  
 }

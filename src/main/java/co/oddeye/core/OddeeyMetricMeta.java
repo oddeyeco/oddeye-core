@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
@@ -104,7 +103,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     @Override
     public OddeeyMetricMeta clone() throws CloneNotSupportedException {
         try {
-            return (OddeeyMetricMeta) super.clone();
+            OddeeyMetricMeta obg = (OddeeyMetricMeta) super.clone();
+            obg.setErrorState(this.ErrorState.clone());
+            return obg;
         } catch (CloneNotSupportedException ex) {
             throw new InternalError();
         }

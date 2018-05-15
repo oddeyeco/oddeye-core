@@ -11,12 +11,12 @@ import java.io.Serializable;
  *
  * @author vahan
  */
-abstract public class ErrorStateBase implements Serializable, Comparable<ErrorStateBase>{
+abstract public class ErrorStateBase implements Serializable, Comparable<ErrorStateBase>, Cloneable{
     private static final long serialVersionUID = 465895478L;
     
     @Override
     public int compareTo(ErrorStateBase o) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+      
 }

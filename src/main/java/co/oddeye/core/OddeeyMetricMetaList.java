@@ -128,7 +128,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
 
     public OddeeyMetricMetaList(TSDB tsdb, byte[] table) {
         super();
-
+        ExecutorService executor = Executors.newFixedThreadPool(12);
         try {
             final HBaseClient client = tsdb.getClient();
 
@@ -140,15 +140,19 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
-            ExecutorService executor = Executors.newCachedThreadPool();
+
             while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
                 for (final ArrayList<KeyValue> row : rows) {
                     executor.submit(new AddMeta(row, tsdb, client, table, this));
                 }
             }
+            executor.shutdown();
+            while (!executor.awaitTermination(24L, TimeUnit.HOURS)) {
+                System.out.println("Not yet. Still waiting for termination");
+            }            
         } catch (Exception ex) {
             LOGGER.warn(globalFunctions.stackTrace(ex));
-        }
+        } 
 
     }
 

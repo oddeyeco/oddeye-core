@@ -15,6 +15,15 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
     private String targetType;
     private String targetValue;
 
+    @Deprecated
+    public OddeeySenderMetricMetaList() {
+    }
+
+    public OddeeySenderMetricMetaList(String tT, String tV) {
+        targetType = tT;
+        targetValue = tV;
+    }
+
     @Override
     public OddeeySenderMetricMetaList clone() throws CloneNotSupportedException {
         try {
