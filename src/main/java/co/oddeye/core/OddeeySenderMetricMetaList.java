@@ -5,6 +5,9 @@
  */
 package co.oddeye.core;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author vahan
@@ -14,6 +17,7 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
     private static final long serialVersionUID = 465895478L;
     private String targetType;
     private String targetValue;
+    private final Map<Integer, Integer> LastSendList = new HashMap<>();
 
     @Deprecated
     public OddeeySenderMetricMetaList() {
@@ -59,6 +63,13 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
      */
     public void setTargetValue(String targetValue) {
         this.targetValue = targetValue;
+    }
+
+    /**
+     * @return the LastSendList
+     */
+    public Map<Integer, Integer> getLastSendList() {
+        return LastSendList;
     }
 
 }
