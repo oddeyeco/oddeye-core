@@ -7,12 +7,12 @@ package co.oddeye.core;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang.WordUtils;
 
 /**
  *
  * @author vahan
  */
-
 public enum OddeeyMetricTypesEnum {
     SPECIAL,
     NONE,
@@ -23,18 +23,39 @@ public enum OddeeyMetricTypesEnum {
     OPS,
     BPS,
     IEC,
+    METRIC,
     TIME,
     TEMPERATURE;
 
     private String value;
-    
+
     public String getValue() {
-        return value;        
-    }        
-    
+        return value;
+    }
+
     public short getShort() {
         return (short) this.ordinal();
-    }            
+    }
+
+    @Override
+    public String toString() {
+        switch (this) {
+            case OPS: {
+                return "Rate Operations";
+            }
+            case BPS: {
+                return "Rate byte data";
+            }
+            case METRIC: {
+                return "Data Metric";
+            }
+            case IEC: {
+                return "Data IEC";
+            }
+            default: {
+                return WordUtils.capitalize(super.toString().toLowerCase());
+            }
+        }
+
+    }
 }
-
-
