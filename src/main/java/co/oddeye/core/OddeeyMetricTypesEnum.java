@@ -19,6 +19,7 @@ public enum OddeeyMetricTypesEnum {
     COUNTER,
     @Deprecated
     RATE,
+    PERCENT,
     OPS,
     BPS,
     IEC,
