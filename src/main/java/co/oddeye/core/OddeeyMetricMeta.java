@@ -72,7 +72,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private ArrayList<Map<String, Object>> LevelValuesList = new ArrayList<>();
     private ArrayList<Integer> LevelList = new ArrayList<>();
     private ErrorState ErrorState = new ErrorState();
-    private short type;
+    private OddeeyMetricTypesEnum type;
 
     public OddeeyMetricMeta(String metricName, Map<String, String> _tags,TSDB tsdb) {
         tagsFullFilter = "";
@@ -97,7 +97,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         name = metricName;
-        type = 1;
+        type = OddeeyMetricTypesEnum.NONE;
     }
 
     @Override
@@ -182,7 +182,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        if (Hex.encodeHexString(key).equals("00006600000400000400000100009900000500009c00000200009a000003000003".toUpperCase())) {
 //            System.out.println("co.oddeye.core.OddeeyMetricMeta.<init>()");
 //        }
-        type = 1;
+        type = OddeeyMetricTypesEnum.NONE;
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "n".getBytes())) {
                 inittime = cell.timestamp();
@@ -191,7 +191,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 lasttime = ByteBuffer.wrap(cell.value()).getLong();
             }
             if (Arrays.equals(cell.qualifier(), "type".getBytes())) {
-                type = ByteBuffer.wrap(cell.value()).getShort();
+                type = OddeeyMetricTypesEnum.values()[ByteBuffer.wrap(cell.value()).getShort()];
             }
             if (Arrays.equals(cell.qualifier(), "Regression".getBytes())) {
                 this.setSerializedRegression(cell.value());
@@ -228,7 +228,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             i = i + 6;
         }
         name = tsdb.getUidName(UniqueId.UniqueIdType.METRIC, nameTSDBUID).join();
-        type = 1;
+        type = OddeeyMetricTypesEnum.NONE;
     }
 
     public OddeeyMetricMeta(OddeeyMetric metric, TSDB tsdb) throws Exception {
@@ -861,7 +861,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             result = name.compareTo(o.getName());
             return result;
         }
-        return type > o.type ? 1 : -1;
+        return type.ordinal() > o.type.ordinal() ? 1 : -1;
     }
 
     /**
@@ -986,24 +986,24 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      * @return the Special
      */
     public boolean isSpecial() {
-        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
+        return type == OddeeyMetricTypesEnum.SPECIAL;
     }
 
     /**
      * @return the type
      */
-    public short getType() {
+    public OddeeyMetricTypesEnum getType() {
         return type;
     }
 
     public String getTypeName() {
-        return OddeeyMetricTypes.getName(type);
+        return type.toString();
     }
 
     /**
      * @param type the type to set
      */
-    public void setType(short type) {
+    public void setType(OddeeyMetricTypesEnum type) {
         this.type = type;
     }
 

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
  * @author vahan
  */
 public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Cloneable {
+
     private static final long serialVersionUID = 465895478L;
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
@@ -35,7 +36,7 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     private final Map<String, String> tags = new TreeMap<>();
     private Double value;
     private Long timestamp;
-    protected short type;
+    protected OddeeyMetricTypesEnum metricType;
     private int reaction;
 
     @Override
@@ -48,7 +49,7 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     }
 
     public OddeeyMetric(JsonElement json) {
-        type = 1;
+        metricType = OddeeyMetricTypesEnum.NONE;
         reaction = 0;
         Type listType = new TypeToken<Map<String, Object>>() {
             private static final long serialVersionUID = 123854678L;
@@ -81,7 +82,14 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
                     }
                 }
                 if (key.equals("type")) {
-                    type = OddeeyMetricTypes.getIndexByName(String.valueOf(ObValue));
+//                    type = OddeeyMetricTypes.getIndexByName(String.valueOf(ObValue));
+                    try {
+                        metricType = OddeeyMetricTypesEnum.valueOf(String.valueOf(ObValue).toUpperCase());
+                    } catch (Exception e) {
+                        LOGGER.error(globalFunctions.stackTrace(e));
+                        metricType = OddeeyMetricTypesEnum.NONE;
+                    }
+                    
                 }
                 if (key.equals("value")) {
                     value = Double.valueOf(String.valueOf(ObValue));
@@ -146,16 +154,16 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     /**
      * @return the type
      */
-    public short getType() {
-        return type;
-    }
-
+    public OddeeyMetricTypesEnum getType() {
+        return metricType;
+    }    
+    
     public String getTypeName() {
-        return OddeeyMetricTypes.getName(type);
+        return metricType.toString();
     }
 
     public boolean isSpecial() {
-        return type == OddeeyMetricTypes.MERIC_TYPE_SPECIAL;
+        return metricType == OddeeyMetricTypesEnum.SPECIAL;
     }
 
     /**
@@ -175,9 +183,10 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
 
         return (OddeeyMetric) ois.readObject();
     }
+
     @Override
     public int hashCode() {
-        int hash = Objects.hashCode(getName()+getTags().toString());
+        int hash = Objects.hashCode(getName() + getTags().toString());
         return hash;
-    }    
+    }
 }
