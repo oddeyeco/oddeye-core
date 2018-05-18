@@ -1070,4 +1070,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public int getLivedays() {
         return Math.toIntExact((lasttime - inittime) / (1000 * 60 * 60 * 24));
     }
+    
+    /**
+     * @return the livedays
+     */
+    public int getSilencedays() {
+        return Math.toIntExact((System.currentTimeMillis()-lasttime) / (1000 * 60 * 60 * 24));
+    }    
 }
