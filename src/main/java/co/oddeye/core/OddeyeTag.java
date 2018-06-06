@@ -81,6 +81,13 @@ public class OddeyeTag implements Serializable{
         value = tsdb.getUidName(UniqueId.UniqueIdType.TAGV, valueTSDBUID).joinUninterruptibly();
     }
 
+    OddeyeTag(OddeyeTag tag) {
+        key = tag.getKey();
+        value = tag.getValue();
+        keyTSDBUID =tag.getKeyTSDBUID();
+        valueTSDBUID =tag.valueTSDBUID;
+    }
+
     /**
      * @return the key
      */

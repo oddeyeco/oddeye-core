@@ -53,7 +53,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             scanner.setMaxNumRows(1000);
             scanner.setFamily("d".getBytes());
 //            scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes(),"lastreaction".getBytes()};
             scanner.setQualifiers(Qualifiers);
 
             ArrayList<ArrayList<KeyValue>> rows;
@@ -137,7 +137,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             scanner.setMaxNumRows(10000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes(),"lastreaction".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
 
@@ -167,7 +167,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
             scanner.setMaxNumRows(10000);
             scanner.setFamily("d".getBytes());
             scanner.setQualifier("n".getBytes());
-            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes()};
+            final byte[][] Qualifiers = new byte[][]{"n".getBytes(), "timestamp".getBytes(), "type".getBytes(), "Regression".getBytes(),"lastreaction".getBytes()};
             scanner.setQualifiers(Qualifiers);
             ArrayList<ArrayList<KeyValue>> rows;
             ExecutorService executor = Executors.newFixedThreadPool(maxThread);

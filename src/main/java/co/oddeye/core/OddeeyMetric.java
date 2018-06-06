@@ -32,12 +32,12 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
     private static final long serialVersionUID = 465895478L;
 
     static final Logger LOGGER = LoggerFactory.getLogger(OddeeyMetric.class);
-    private String name;
-    private final Map<String, String> tags = new TreeMap<>();
-    private Double value;
-    private Long timestamp;
+    protected String name;
+    protected final Map<String, String> tags = new TreeMap<>();
+    protected Double value;
+    protected Long timestamp;
     protected OddeeyMetricTypesEnum metricType;
-    private int reaction;
+    protected int reaction;
 
     @Override
     public OddeeyMetric clone() throws CloneNotSupportedException {
@@ -48,6 +48,10 @@ public class OddeeyMetric implements Serializable, Comparable<OddeeyMetric>, Clo
         }
     }
 
+    protected OddeeyMetric() {
+        
+    }
+    
     public OddeeyMetric(JsonElement json) {
         metricType = OddeeyMetricTypesEnum.NONE;
         reaction = 0;

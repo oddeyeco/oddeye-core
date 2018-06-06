@@ -72,7 +72,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private ArrayList<Integer> LevelList = new ArrayList<>();
     private ErrorState ErrorState = new ErrorState();
     private OddeeyMetricTypesEnum type;
-    private int lastreaction;
+    private int lastreaction = 0;
 
     public OddeeyMetricMeta(String metricName, Map<String, String> _tags,TSDB tsdb) {
         tagsFullFilter = "";
@@ -144,6 +144,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             if (Arrays.equals(cell.qualifier(), "Regression".getBytes())) {
                 this.setSerializedRegression(cell.value());
             }
+            if (Arrays.equals(cell.qualifier(), "lastreaction".getBytes())) {
+                lastreaction = ByteBuffer.wrap(cell.value()).getInt();
+            }            
+            
         }
 
         if (loadAllRules) {

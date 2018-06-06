@@ -6,6 +6,7 @@
 package co.oddeye.core;
 
 import com.google.gson.JsonElement;
+import java.util.Map;
 
 /**
  *
@@ -25,12 +26,24 @@ public class OddeeysSpecialMetric extends OddeeyMetric {
         }
         if (json.getAsJsonObject().has("status")) {
             status = json.getAsJsonObject().get("status").getAsString();
-        }
-        else
-        {
-            status ="";
+        } else {
+            status = "";
         }
 
+    }
+
+    public OddeeysSpecialMetric(OddeeyMetricMeta mt) {
+        super();
+        metricType = mt.getType();
+        reaction = mt.getLastreaction();
+        tags.clear();
+        mt.getTags().entrySet().forEach((tag) -> {            
+            tags.put(tag.getKey(), tag.getValue().getValue());
+        });
+        name = mt.getName();
+        timestamp = mt.getLasttime();
+        message = "";
+        status = "OK";
     }
 
     /**
