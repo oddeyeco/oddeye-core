@@ -144,9 +144,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
             if (Arrays.equals(cell.qualifier(), "lastreaction".getBytes())) {
                 lastreaction = ByteBuffer.wrap(cell.value()).getInt();
-                if (hashCode() == -594900439) {
-                    System.out.println("Valod");
-                }
             }
 
         }
