@@ -74,11 +74,10 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     private OddeeyMetricTypesEnum type;
     private int lastreaction = 0;
 
-    public OddeeyMetricMeta(String metricName, Map<String, String> _tags,TSDB tsdb) {
+    public OddeeyMetricMeta(String metricName, Map<String, String> _tags, TSDB tsdb) {
         tagsFullFilter = "";
-        nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, metricName);        
-        for (Map.Entry<String, String> tag :_tags.entrySet())
-        {
+        nameTSDBUID = tsdb.getUID(UniqueId.UniqueIdType.METRIC, metricName);
+        for (Map.Entry<String, String> tag : _tags.entrySet()) {
             try {
                 OddeyeTag ODtag = new OddeyeTag(tag.getKey(), tag.getValue(), tsdb);
                 tags.put(tag.getKey(), ODtag);
@@ -129,7 +128,6 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         if (name == null) {
             throw new NullPointerException("Has not metriq name:" + Hex.encodeHexString(nameTSDBUID));
         }
-
         type = OddeeyMetricTypesEnum.NONE;
         for (KeyValue cell : row) {
             if (Arrays.equals(cell.qualifier(), "n".getBytes())) {
@@ -146,8 +144,11 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
             if (Arrays.equals(cell.qualifier(), "lastreaction".getBytes())) {
                 lastreaction = ByteBuffer.wrap(cell.value()).getInt();
-            }            
-            
+                if (hashCode() == -594900439) {
+                    System.out.println("Valod");
+                }
+            }
+
         }
 
         if (loadAllRules) {
@@ -210,9 +211,9 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                 if (fieldTarget.getName().equals(fieldSource.getName())) {
                     try {
                         if ((!java.lang.reflect.Modifier.isStatic(fieldTarget.getModifiers()))
-                                &&(!java.lang.reflect.Modifier.isFinal(fieldTarget.getModifiers()))){
-                            fieldTarget.set(this, fieldSource.get(source));    
-                        }                                            
+                                && (!java.lang.reflect.Modifier.isFinal(fieldTarget.getModifiers()))) {
+                            fieldTarget.set(this, fieldSource.get(source));
+                        }
                     } catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
                         LOGGER.error(e.toString());
                     }
@@ -221,7 +222,7 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
     }
-    
+
     public Map<String, MetriccheckRule> getRules(final Calendar CalendarObj, int days, final byte[] table, final HBaseClient client) throws Exception {
         Map<String, MetriccheckRule> rules = new TreeMap<>();
         Set<String> remrules = new HashSet<>();
@@ -307,8 +308,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             final byte[] time_key = ByteBuffer.allocate(6).putShort((short) CalendarObj.get(Calendar.YEAR)).putShort((short) CalendarObj.get(Calendar.DAY_OF_YEAR)).putShort((short) CalendarObj.get(Calendar.HOUR_OF_DAY)).array();
 //            Rule = getRulesCache().getIfPresent(Hex.encodeHexString(time_key));
 //            if (Rule == null) {
-                Rule = new MetriccheckRule(getKey(), time_key);
-                list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
+            Rule = new MetriccheckRule(getKey(), time_key);
+            list.add(new QualifierFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(time_key)));
 //            } else {
 //                if (Rule.isIsValidRule()) {
 //                    validcount++;
@@ -325,13 +326,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
 //        remrules.addAll(rules.keySet());
         if (list.size() > 0) {
             FilterList filterlist = new FilterList(list, FilterList.Operator.MUST_PASS_ONE);
-            GetRequest get = new GetRequest(table, ("@"+getName()).getBytes());
+            GetRequest get = new GetRequest(table, ("@" + getName()).getBytes());
             get.setFilter(filterlist);
             ArrayList<KeyValue> ruledata = client.get(get).joinUninterruptibly();
             if (ruledata.isEmpty()) {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Rule not exist in Database by " + " for " + name + " " + tags + " for " + CalendarObj.getTime() + " " + days + " days");
-                }                
+                }
                 rules.clear();
             } else {
                 Collections.reverse(ruledata);
@@ -352,15 +353,15 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
                     if (validcount > days) {
                         rules.remove(Hex.encodeHexString(kv.qualifier()));
                     } else {
-                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);                        
+                        rules.put(Hex.encodeHexString(kv.qualifier()), Rule);
                     }
                 }
-            }           
+            }
         }
         return rules;
 
-    }    
-    
+    }
+
     public void getRulePutValues(byte[][] qualifiers, byte[][] values) {
         ConcurrentMap<String, MetriccheckRule> rulesmap = getRulesCache().asMap();
         qualifiers = new byte[rulesmap.size()][];
@@ -722,13 +723,13 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
     public int getLivedays() {
         return Math.toIntExact((lasttime - inittime) / (1000 * 60 * 60 * 24));
     }
-    
+
     /**
      * @return the livedays
      */
     public int getSilencedays() {
-        return Math.toIntExact((System.currentTimeMillis()-lasttime) / (1000 * 60 * 60 * 24));
-    }    
+        return Math.toIntExact((System.currentTimeMillis() - lasttime) / (1000 * 60 * 60 * 24));
+    }
 
     /**
      * @return the lastreaction
@@ -742,5 +743,5 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
      */
     public void setLastreaction(int lastreaction) {
         this.lastreaction = lastreaction;
-    }    
+    }
 }

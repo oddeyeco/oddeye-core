@@ -16,7 +16,6 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.utils.Config;
-import org.hbase.async.AppendRequest;
 import org.hbase.async.HBaseClient;
 import org.hbase.async.PutRequest;
 import org.slf4j.Logger;
@@ -179,9 +178,9 @@ public class globalFunctions {
 
             byte[][] qualifiers = q.toArray(new byte[q.size()][]);
             byte[][] values = v.toArray(new byte[q.size()][]);
-            AppendRequest appendvalue = new AppendRequest(metatable, key, meta_family, qualifiers, values);
+            PutRequest pvalue = new PutRequest(metatable, key, meta_family, qualifiers, values);
             LOGGER.warn("Add metric Meta to hbase Special:" + metric.getName() + " tags " + metric.getTags() + " newcode: " + metric.hashCode());
-            globalFunctions.getSecindaryclient(clientconf).append(appendvalue);
+            globalFunctions.getSecindaryclient(clientconf).put(pvalue);
         } else {
             mtrsc = mtrscList.get(mtrsc.hashCode());
 //            qualifiers = new byte[1][];
