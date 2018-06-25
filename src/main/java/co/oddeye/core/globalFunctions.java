@@ -179,7 +179,7 @@ public class globalFunctions {
             byte[][] qualifiers = q.toArray(new byte[q.size()][]);
             byte[][] values = v.toArray(new byte[q.size()][]);
             PutRequest pvalue = new PutRequest(metatable, key, meta_family, qualifiers, values);
-            LOGGER.warn("Add metric Meta to hbase Special:" + metric.getName() + " tags " + metric.getTags() + " newcode: " + metric.hashCode());
+            LOGGER.warn("Add metric Meta to hbase :" + metric.getName() + " tags " + metric.getTags() + " newcode: " + metric.hashCode());
             globalFunctions.getSecindaryclient(clientconf).put(pvalue);
         } else {
             mtrsc = mtrscList.get(mtrsc.hashCode());
