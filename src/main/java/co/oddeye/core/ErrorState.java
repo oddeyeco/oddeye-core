@@ -215,13 +215,19 @@ public class ErrorState extends ErrorStateBase {
             state = ALERT_STATE_CONT;
         } else if (this.level == -1) {
             state = ALERT_STATE_START;
-            starttimes.put(level, timestamp);
+            for (int i = level; i > this.level; i--) {
+                starttimes.put(i, timestamp);
+            }
         } else if (this.level > level) {
             state = ALERT_STATE_DW;//Dowun
             endtimes.put(this.level, timestamp);
         } else if (this.level < level) {
             state = ALERT_STATE_UP;//Up
-            starttimes.put(level, timestamp);
+            int stoplevel = this.level ==-255 ? -2:this.level;            
+            for (int i = level; i > stoplevel; i--) {
+                starttimes.put(i, timestamp);
+            }
+
         }
         if ((level == -1) && (this.level != -1)) {
             if ((level == -1) && (this.level == -255)) {
@@ -304,6 +310,7 @@ public class ErrorState extends ErrorStateBase {
     public int getFlap() {
         return flap;
     }
+
     @Override
     public ErrorState clone() throws CloneNotSupportedException {
         try {
@@ -311,5 +318,5 @@ public class ErrorState extends ErrorStateBase {
         } catch (CloneNotSupportedException ex) {
             throw new InternalError();
         }
-    }  
+    }
 }

@@ -136,6 +136,10 @@ public class globalFunctions {
         calendar.setTimeInMillis(timestamp);
         return ByteBuffer.allocate(4).putShort((short) calendar.get(Calendar.YEAR)).putShort((short) calendar.get(Calendar.DAY_OF_YEAR)).array();
     }
+    
+    public static byte[] getDayKey(Calendar cal) {        
+        return ByteBuffer.allocate(4).putShort((short) cal.get(Calendar.YEAR)).putShort((short) cal.get(Calendar.DAY_OF_YEAR)).array();
+    }    
 
     public static byte[] getNoDayKey(Long timestamp) {
         calendar.setTimeInMillis(timestamp);
