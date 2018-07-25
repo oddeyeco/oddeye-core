@@ -113,7 +113,15 @@ public class ErrorState extends ErrorStateBase {
         time = ErrorData.get("time").getAsLong();
 
         reaction = ErrorData.get("reaction").getAsInt();
-        startvalue = ErrorData.get("startvalue").getAsDouble();
+        if (ErrorData.get("startvalue").isJsonNull())
+        {
+            startvalue = null;
+        }
+        else
+        {
+            startvalue = ErrorData.get("startvalue").getAsDouble();
+        }
+        
 
         java.lang.reflect.Type type = new TypeToken<HashMap<Integer, Long>>() {
             private static final long serialVersionUID = 465895478L;
