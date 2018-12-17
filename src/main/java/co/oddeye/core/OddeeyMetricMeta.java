@@ -34,6 +34,7 @@ import net.opentsdb.core.TSDB;
 import net.opentsdb.uid.NoSuchUniqueName;
 import net.opentsdb.uid.UniqueId;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hbase.async.BinaryComparator;
@@ -499,6 +500,17 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         return hash;
     }
 
+    
+    public String sha256Code() {
+        byte[] key = this.getKey();
+        if (key == null) {
+            LOGGER.warn("this.getKey() is null");
+            return null;
+        }        
+        String sha256hex = DigestUtils.sha256Hex(key);
+        return sha256hex;
+    }    
+    
     @Override
     public int compareTo(OddeeyMetricMeta o) {
         int result;

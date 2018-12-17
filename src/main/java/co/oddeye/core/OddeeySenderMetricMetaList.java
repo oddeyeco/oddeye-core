@@ -17,7 +17,7 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
     private static final long serialVersionUID = 465895478L;
     private String targetType;
     private String targetValue;
-    private final Map<Integer, Integer> LastSendList = new HashMap<>();
+    private final Map<String, Integer> LastSendList = new HashMap<>();
 
     @Deprecated
     public OddeeySenderMetricMetaList() {
@@ -68,7 +68,7 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
     /**
      * @return the LastSendList
      */
-    public Map<Integer, Integer> getLastSendList() {
+    public Map<String, Integer> getLastSendList() {
         return LastSendList;
     }
 

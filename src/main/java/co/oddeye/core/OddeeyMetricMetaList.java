@@ -6,7 +6,6 @@
 package co.oddeye.core;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author vahan
  */
-public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetricMeta> {
+public class OddeeyMetricMetaList extends ConcurrentHashMap<String, OddeeyMetricMeta> {
 
     private static final long serialVersionUID = 465895478L;
 
@@ -185,8 +184,8 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
     }
 
     public OddeeyMetricMeta set(OddeeyMetricMeta e) {
-        int code = e.hashCode();
-        if (code == 0) {
+        String code = e.sha256Code();
+        if (code == null) {
             LOGGER.warn("Get hash Error for " + e.getName());
             return null;
         }
@@ -205,10 +204,10 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
      * @return the OddeeyMetricMeta
      */
     protected OddeeyMetricMeta add(OddeeyMetricMeta e) {
-        if (this.containsKey(e.hashCode())) {
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode " + e.hashCode() + " Is exist ");
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode e infa " + e.getName() + " tags " + e.getTags());
-            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs hashcode c infa " + this.get(e.hashCode()).getName() + " tags " + this.get(e.hashCode()).getTags());
+        if (this.containsKey(e.sha256Code())) {
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs sha256 hashcode " + e.sha256Code() + " Is exist ");
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs sha256 hashcode e infa " + e.getName() + " tags " + e.getTags());
+            OddeeyMetricMeta.LOGGER.warn("OddeeyMetricMeta vs sha256 hashcode c infa " + this.get(e.sha256Code()).getName() + " tags " + this.get(e.sha256Code()).getTags());
             return null;
         }
 
@@ -239,7 +238,7 @@ public class OddeeyMetricMetaList extends ConcurrentHashMap<Integer, OddeeyMetri
                 OddeeyMetricMeta.LOGGER.warn("Tagkeyv " + tagvalue.getValue().getValue() + " ERROR e infa " + e.getName() + " tags " + e.getTags());
             }
         });
-        return this.put(e.hashCode(), e);
+        return this.put(e.sha256Code(), e);
     }
 
     public String[] getTagK() {
