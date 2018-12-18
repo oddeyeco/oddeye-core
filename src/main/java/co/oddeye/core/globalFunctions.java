@@ -159,7 +159,7 @@ public class globalFunctions {
         ArrayList<byte[]> v = new ArrayList<>();
         byte[] key = mtrsc.getKey();
         byte[] meta_family = "d".getBytes();
-        if (!mtrscList.containsKey(mtrsc.hashCode())) {
+        if (!mtrscList.containsKey(mtrsc.sha256Code())) {
 
             q.add("n".getBytes());
             q.add("timestamp".getBytes());
@@ -183,16 +183,16 @@ public class globalFunctions {
             byte[][] qualifiers = q.toArray(new byte[q.size()][]);
             byte[][] values = v.toArray(new byte[q.size()][]);
             PutRequest pvalue = new PutRequest(metatable, key, meta_family, qualifiers, values);
-            LOGGER.warn("Add metric Meta to hbase :" + metric.getName() + " tags " + metric.getTags() + " newcode: " + metric.hashCode());
+            LOGGER.warn("Add metric Meta to hbase :" + mtrsc.getName() + " tags " + metric.getTags() + " newcode: " + mtrsc.sha256Code());
             globalFunctions.getSecindaryclient(clientconf).put(pvalue);
         } else {
-            mtrsc = mtrscList.get(mtrsc.hashCode());
+            mtrsc = mtrscList.get(mtrsc.sha256Code());
 //            qualifiers = new byte[1][];
 //            values = new byte[1][];
 
             if ((metric.getTimestamp() <= mtrsc.getLasttime())) {
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Metric Negativ interval: " + mtrsc.hashCode() + " " + mtrsc.getName() + " " + mtrsc.getLasttime() + " " + (mtrsc.getLasttime() - metric.getTimestamp()));
+                    LOGGER.info("Metric Negativ interval: " + mtrsc.sha256Code() + " " + mtrsc.getName() + " " + mtrsc.getLasttime() + " " + (mtrsc.getLasttime() - metric.getTimestamp()));
                 }
 
                 return;
