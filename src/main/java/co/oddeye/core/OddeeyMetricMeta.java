@@ -7,6 +7,7 @@ package co.oddeye.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.JsonArray;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -393,8 +394,22 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
             }
         }
         return result;
-    }
+    }      
 
+    public String getDisplayTags(String separator, ArrayList<String> targetOption) {
+        String result = "";
+        for (Map.Entry<String, OddeyeTag> tag : tags.entrySet()) {
+            if (!tag.getKey().equals("UUID")) {
+                if (targetOption.contains(tag.getKey()))
+                {
+                    result = result + " " + tag.getKey() + ":" + tag.getValue().getValue() + separator;
+                }
+                
+            }
+        }
+        return result;
+    }    
+    
     /**
      * @return the nameTSDBUID
      */
