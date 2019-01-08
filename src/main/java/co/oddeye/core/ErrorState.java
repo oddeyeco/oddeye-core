@@ -53,6 +53,7 @@ public class ErrorState extends ErrorStateBase {
 
     public final static Integer[] ALERT_STATE_INDEX = new Integer[]{ALERT_STATE_START, ALERT_STATE_CONT, ALERT_STATE_DW, ALERT_STATE_UP};
     public final static String[] ALERT_STATE = new String[]{ST_ALERT_STATE_START, ST_ALERT_STATE_CONT, ST_ALERT_STATE_DW, ST_ALERT_STATE_UP};
+    public final static String[] ALERT_CHARS = new String[]{"↪", "↔", "⤵", "⤴"};
 
     static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ErrorState.class);
 
@@ -326,5 +327,13 @@ public class ErrorState extends ErrorStateBase {
         } catch (CloneNotSupportedException ex) {
             throw new InternalError();
         }
+    }
+
+    public String getStateChar() {
+        boolean contains = Arrays.asList(ALERT_STATE_INDEX).contains(state);
+        if (contains) {
+            return ALERT_CHARS[state];
+        }
+        return "NaN";
     }
 }

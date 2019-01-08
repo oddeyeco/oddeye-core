@@ -5,6 +5,7 @@
  */
 package co.oddeye.core;
 
+import com.google.gson.JsonArray;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,14 +19,16 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
     private String targetType;
     private String targetValue;
     private final Map<String, Integer> LastSendList = new HashMap<>();
+    private JsonArray targetOption;
 
     @Deprecated
     public OddeeySenderMetricMetaList() {
     }
 
-    public OddeeySenderMetricMetaList(String tT, String tV) {
+    public OddeeySenderMetricMetaList(String tT, String tV,JsonArray options) {
         targetType = tT;
         targetValue = tV;
+        targetOption = options;
     }
 
     @Override
@@ -70,6 +73,20 @@ public class OddeeySenderMetricMetaList extends OddeeyMetricMetaList implements 
      */
     public Map<String, Integer> getLastSendList() {
         return LastSendList;
+    }
+
+    /**
+     * @return the targetOption
+     */
+    public JsonArray getTargetOption() {
+        return targetOption;
+    }
+
+    /**
+     * @param targetOption the targetOption to set
+     */
+    public void setTargetOption(JsonArray targetOption) {
+        this.targetOption = targetOption;
     }
 
 }
