@@ -400,7 +400,8 @@ public class OddeeyMetricMeta implements Serializable, Comparable<OddeeyMetricMe
         String result = "";
         for (Map.Entry<String, OddeyeTag> tag : tags.entrySet()) {
             if (!tag.getKey().equals("UUID")) {
-                if (targetOption.contains(tag.getKey()))
+                //info_tags_host_value
+                if (targetOption.contains("info_tags_"+tag.getKey()+"_value" ))
                 {
                     result = result + " " + tag.getKey() + ":" + tag.getValue().getValue() + separator;
                 }

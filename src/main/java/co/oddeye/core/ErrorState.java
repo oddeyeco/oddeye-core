@@ -53,7 +53,7 @@ public class ErrorState extends ErrorStateBase {
 
     public final static Integer[] ALERT_STATE_INDEX = new Integer[]{ALERT_STATE_START, ALERT_STATE_CONT, ALERT_STATE_DW, ALERT_STATE_UP};
     public final static String[] ALERT_STATE = new String[]{ST_ALERT_STATE_START, ST_ALERT_STATE_CONT, ST_ALERT_STATE_DW, ST_ALERT_STATE_UP};
-    public final static String[] ALERT_CHARS = new String[]{"↪", "↔", "⤵", "⤴"};
+    public final static String[] ALERT_CHARS = new String[]{"◄►", "↔", "⤵", "⤴"};
 
     static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ErrorState.class);
 
